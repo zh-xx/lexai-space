@@ -592,22 +592,138 @@
         }
 
         /* --- History Panel Styles --- */
-        .history-panel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 350px;
-            height: 100vh;
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            position: relative;
+            align-items: center;
+            flex-wrap: nowrap;
+        }
+        
+        /* 响应式按钮组 */
+        .primary-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .secondary-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .more-actions-btn {
             background: var(--card-bg);
-            border-right: 1px solid var(--border-color);
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9em;
+            display: none;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .more-actions-btn:hover {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .more-actions-panel {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             z-index: 1000;
-            transform: translateX(-100%);
-            transition: transform 0.3s ease;
-            overflow-y: auto;
+            transform: translateY(-10px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            min-width: 150px;
+            margin-top: 5px;
+        }
+        
+        .more-actions-panel.open {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .more-actions-panel button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 10px 15px;
+            border: none;
+            background: none;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 0.9em;
+            border-radius: 0;
+        }
+        
+        .more-actions-panel button:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .more-actions-panel button:first-child {
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .more-actions-panel button:last-child {
+            border-radius: 0 0 8px 8px;
+        }
+        
+        /* 响应式断点 */
+        @media (max-width: 1200px) {
+            .secondary-actions {
+                display: none;
+            }
+            .more-actions-btn {
+                display: flex;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header-actions {
+                gap: 6px;
+            }
+            .primary-actions {
+                gap: 6px;
+            }
+            .header-actions button {
+                padding: 6px 10px;
+                font-size: 0.85em;
+            }
+        }
+        .history-panel {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 400px;
+            max-height: 600px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            z-index: 1000;
+            transform: translateY(-10px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            overflow: hidden;
         }
         .history-panel.open {
-            transform: translateX(0);
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
         }
         .history-header {
             padding: 20px;
@@ -651,6 +767,8 @@
         }
         .history-list {
             padding: 0;
+            max-height: 400px;
+            overflow-y: auto;
         }
         .history-item {
             padding: 15px 20px;
@@ -732,21 +850,26 @@
             border-color: var(--primary-color);
         }
         .history-toggle-btn {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 1001;
+            position: relative;
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             color: var(--text-secondary);
-            padding: 8px 12px;
+            padding: 8px 16px;
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.2s;
             font-size: 0.9em;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
         .history-toggle-btn:hover {
             color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .history-toggle-btn.active {
+            background: var(--primary-color);
+            color: white;
             border-color: var(--primary-color);
         }
         .history-empty {
@@ -770,38 +893,19 @@
             font-weight: 500;
             color: var(--text-color);
         }
+        
+        /* 添加下拉箭头动画 */
+        .history-toggle-btn i.fa-chevron-down {
+            transition: transform 0.3s ease;
+        }
+        .history-toggle-btn.active i.fa-chevron-down {
+            transform: rotate(180deg);
+        }
     </style>
 </head>
 <body>
     <!-- History Panel -->
-    <button class="history-toggle-btn" id="history-toggle-btn">
-        <i class="fa-solid fa-history"></i> 历史记录
-    </button>
-    
-    <div class="history-panel" id="history-panel">
-        <div class="history-header">
-            <h3><i class="fa-solid fa-history"></i> 审核历史</h3>
-            <div class="history-search">
-                <input type="text" id="history-search-input" placeholder="搜索文件名...">
-            </div>
-            <div class="history-filters">
-                <button class="filter-btn active" data-filter="all">全部</button>
-                <button class="filter-btn" data-filter="high">高风险</button>
-                <button class="filter-btn" data-filter="medium">中风险</button>
-                <button class="filter-btn" data-filter="low">低风险</button>
-            </div>
-        </div>
-        <div class="history-stats" id="history-stats">
-            共 <span id="history-count">0</span> 条记录
-        </div>
-        <div class="history-list" id="history-list">
-            <div class="history-empty" id="history-empty">
-                <i class="fa-solid fa-folder-open"></i>
-                <p>暂无审核历史</p>
-                <p style="font-size: 0.8em;">开始审核后，记录将自动保存</p>
-            </div>
-        </div>
-    </div>
+
 
     <div class="main-container">
         <div class="left-panel">
@@ -816,9 +920,49 @@
                 <div class="app-header">
                     <h1><i class="fa-solid fa-shield-halved"></i> 智能合同审核工具</h1>
                     <div class="header-actions">
-                        <button id="export-history-btn"><i class="fa-solid fa-download"></i> 导出历史</button>
-                        <button id="import-history-btn"><i class="fa-solid fa-upload"></i> 导入历史</button>
-                        <button id="settings-btn"><i class="fa-solid fa-gear"></i> 配置密钥</button>
+                        <div class="primary-actions">
+                            <button class="history-toggle-btn" id="history-toggle-btn">
+                                <i class="fa-solid fa-history"></i> 历史记录
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <div class="history-panel" id="history-panel">
+                                <div class="history-header">
+                                    <h3><i class="fa-solid fa-history"></i> 审核历史</h3>
+                                    <div class="history-search">
+                                        <input type="text" id="history-search-input" placeholder="搜索文件名...">
+                                    </div>
+                                    <div class="history-filters">
+                                        <button class="filter-btn active" data-filter="all">全部</button>
+                                        <button class="filter-btn" data-filter="high">高风险</button>
+                                        <button class="filter-btn" data-filter="medium">中风险</button>
+                                        <button class="filter-btn" data-filter="low">低风险</button>
+                                    </div>
+                                </div>
+                                <div class="history-stats" id="history-stats">
+                                    共 <span id="history-count">0</span> 条记录
+                                </div>
+                                <div class="history-list" id="history-list">
+                                    <div class="history-empty" id="history-empty">
+                                        <i class="fa-solid fa-folder-open"></i>
+                                        <p>暂无审核历史</p>
+                                        <p style="font-size: 0.8em;">开始审核后，记录将自动保存</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="secondary-actions">
+                            <button id="export-history-btn"><i class="fa-solid fa-download"></i> 导出历史</button>
+                            <button id="import-history-btn"><i class="fa-solid fa-upload"></i> 导入历史</button>
+                            <button id="settings-btn"><i class="fa-solid fa-gear"></i> 配置密钥</button>
+                        </div>
+                        <button class="more-actions-btn" id="more-actions-btn">
+                            <i class="fa-solid fa-ellipsis-h"></i> 更多
+                        </button>
+                        <div class="more-actions-panel" id="more-actions-panel">
+                            <button id="export-history-btn-more"><i class="fa-solid fa-download"></i> 导出历史</button>
+                            <button id="import-history-btn-more"><i class="fa-solid fa-upload"></i> 导入历史</button>
+                            <button id="settings-btn-more"><i class="fa-solid fa-gear"></i> 配置密钥</button>
+                        </div>
                     </div>
                 </div>
                 <div class="settings-panel" id="settings-panel" style="display: none;">
@@ -890,9 +1034,48 @@
                 <div class="app-header">
                     <h2><i class="fa-solid fa-chart-pie"></i> 审核结果</h2>
                     <div class="header-actions">
-                        <button id="save-to-history-btn"><i class="fa-solid fa-save"></i> 保存到历史</button>
-                        <button id="export-pdf-btn"><i class="fa-solid fa-file-pdf"></i> 导出为PDF</button>
-                        <button id="new-review-btn"><i class="fa-solid fa-rotate-right"></i> 开始新审核</button>
+                        <div class="primary-actions">
+                            <button class="history-toggle-btn" id="history-toggle-btn-results">
+                                <i class="fa-solid fa-history"></i> 历史记录
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <div class="history-panel" id="history-panel-results">
+                                <div class="history-header">
+                                    <h3><i class="fa-solid fa-history"></i> 审核历史</h3>
+                                    <div class="history-search">
+                                        <input type="text" id="history-search-input-results" placeholder="搜索文件名...">
+                                    </div>
+                                    <div class="history-filters">
+                                        <button class="filter-btn active" data-filter="all">全部</button>
+                                        <button class="filter-btn" data-filter="high">高风险</button>
+                                        <button class="filter-btn" data-filter="medium">中风险</button>
+                                        <button class="filter-btn" data-filter="low">低风险</button>
+                                    </div>
+                                </div>
+                                <div class="history-stats" id="history-stats-results">
+                                    共 <span id="history-count-results">0</span> 条记录
+                                </div>
+                                <div class="history-list" id="history-list-results">
+                                    <div class="history-empty" id="history-empty-results">
+                                        <i class="fa-solid fa-folder-open"></i>
+                                        <p>暂无审核历史</p>
+                                        <p style="font-size: 0.8em;">开始审核后，记录将自动保存</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <button id="save-to-history-btn"><i class="fa-solid fa-save"></i> 保存到历史</button>
+                        </div>
+                        <div class="secondary-actions">
+                            <button id="export-pdf-btn"><i class="fa-solid fa-file-pdf"></i> 导出为PDF</button>
+                            <button id="new-review-btn"><i class="fa-solid fa-rotate-right"></i> 开始新审核</button>
+                        </div>
+                        <button class="more-actions-btn" id="more-actions-btn-results">
+                            <i class="fa-solid fa-ellipsis-h"></i> 更多
+                        </button>
+                        <div class="more-actions-panel" id="more-actions-panel-results">
+                            <button id="export-pdf-btn-more"><i class="fa-solid fa-file-pdf"></i> 导出为PDF</button>
+                            <button id="new-review-btn-more"><i class="fa-solid fa-rotate-right"></i> 开始新审核</button>
+                        </div>
                     </div>
                 </div>
                 <div id="results-content">
@@ -964,9 +1147,25 @@
         const historyEmpty = document.getElementById('history-empty');
         const historyCount = document.getElementById('history-count');
         const historyStats = document.getElementById('history-stats');
+        
+        // Results page history elements
+        const historyToggleBtnResults = document.getElementById('history-toggle-btn-results');
+        const historyPanelResults = document.getElementById('history-panel-results');
+        const historySearchInputResults = document.getElementById('history-search-input-results');
+        const historyListResults = document.getElementById('history-list-results');
+        const historyEmptyResults = document.getElementById('history-empty-results');
+        const historyCountResults = document.getElementById('history-count-results');
+        const historyStatsResults = document.getElementById('history-stats-results');
+        
         const exportHistoryBtn = document.getElementById('export-history-btn');
         const importHistoryBtn = document.getElementById('import-history-btn');
         const saveToHistoryBtn = document.getElementById('save-to-history-btn');
+        
+        // More actions elements
+        const moreActionsBtn = document.getElementById('more-actions-btn');
+        const moreActionsPanel = document.getElementById('more-actions-panel');
+        const moreActionsBtnResults = document.getElementById('more-actions-btn-results');
+        const moreActionsPanelResults = document.getElementById('more-actions-panel-results');
 
         // --- State ---
         let originalFileBuffer = null;
@@ -1560,10 +1759,15 @@
             if (filteredRecords.length === 0) {
                 historyEmpty.style.display = 'block';
                 historyList.innerHTML = '';
+                if (historyEmptyResults) {
+                    historyEmptyResults.style.display = 'block';
+                    historyListResults.innerHTML = '';
+                }
                 return;
             }
 
             historyEmpty.style.display = 'none';
+            if (historyEmptyResults) historyEmptyResults.style.display = 'none';
             
             const recordsHtml = filteredRecords.map(record => {
                 const riskLevel = getRiskLevelFromResults(record.results);
@@ -1607,6 +1811,7 @@
             }).join('');
 
             historyList.innerHTML = recordsHtml;
+            if (historyListResults) historyListResults.innerHTML = recordsHtml;
         }
 
         // Filter history records
@@ -1642,6 +1847,7 @@
         function updateHistoryStats() {
             const filteredRecords = filterHistoryRecords();
             historyCount.textContent = filteredRecords.length;
+            if (historyCountResults) historyCountResults.textContent = filteredRecords.length;
         }
 
         // Format file size
@@ -1690,6 +1896,11 @@
 
             // Close history panel
             historyPanel.classList.remove('open');
+            historyToggleBtn.classList.remove('active');
+            if (historyPanelResults) {
+                historyPanelResults.classList.remove('open');
+                historyToggleBtnResults.classList.remove('active');
+            }
 
             // Start review
             setTimeout(() => {
@@ -1801,7 +2012,9 @@
 
         // Toggle history panel
         function toggleHistoryPanel() {
+            const isOpen = historyPanel.classList.contains('open');
             historyPanel.classList.toggle('open');
+            historyToggleBtn.classList.toggle('active', !isOpen);
         }
 
         // View review results from history
@@ -1839,6 +2052,11 @@
 
             // Close history panel and show results
             historyPanel.classList.remove('open');
+            historyToggleBtn.classList.remove('active');
+            if (historyPanelResults) {
+                historyPanelResults.classList.remove('open');
+                historyToggleBtnResults.classList.remove('active');
+            }
             showView('results');
         }
 
@@ -1868,11 +2086,50 @@
 
         // History panel event listeners
         historyToggleBtn.addEventListener('click', toggleHistoryPanel);
+        
+        // Results page history panel event listeners
+        if (historyToggleBtnResults) {
+            historyToggleBtnResults.addEventListener('click', () => {
+                const isOpen = historyPanelResults.classList.contains('open');
+                historyPanelResults.classList.toggle('open');
+                historyToggleBtnResults.classList.toggle('active', !isOpen);
+            });
+        }
+        
+        // 点击外部区域关闭面板
+        document.addEventListener('click', (event) => {
+            // 关闭历史记录面板
+            if (!historyToggleBtn.contains(event.target) && !historyPanel.contains(event.target)) {
+                historyPanel.classList.remove('open');
+                historyToggleBtn.classList.remove('active');
+            }
+            if (historyToggleBtnResults && !historyToggleBtnResults.contains(event.target) && !historyPanelResults.contains(event.target)) {
+                historyPanelResults.classList.remove('open');
+                historyToggleBtnResults.classList.remove('active');
+            }
+            
+            // 关闭更多操作面板
+            if (moreActionsBtn && !moreActionsBtn.contains(event.target) && !moreActionsPanel.contains(event.target)) {
+                moreActionsPanel.classList.remove('open');
+            }
+            if (moreActionsBtnResults && !moreActionsBtnResults.contains(event.target) && !moreActionsPanelResults.contains(event.target)) {
+                moreActionsPanelResults.classList.remove('open');
+            }
+        });
         historySearchInput.addEventListener('input', (e) => {
             currentHistorySearch = e.target.value;
             displayHistoryRecords();
             updateHistoryStats();
         });
+        
+        // Results page search input
+        if (historySearchInputResults) {
+            historySearchInputResults.addEventListener('input', (e) => {
+                currentHistorySearch = e.target.value;
+                displayHistoryRecords();
+                updateHistoryStats();
+            });
+        }
         
         historyFilters.forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -1888,6 +2145,43 @@
         saveToHistoryBtn.addEventListener('click', saveCurrentReviewToHistory);
         exportHistoryBtn.addEventListener('click', exportAllHistory);
         importHistoryBtn.addEventListener('click', importHistory);
+        
+        // More actions event listeners
+        if (moreActionsBtn) {
+            moreActionsBtn.addEventListener('click', () => {
+                const isOpen = moreActionsPanel.classList.contains('open');
+                moreActionsPanel.classList.toggle('open');
+            });
+        }
+        
+        if (moreActionsBtnResults) {
+            moreActionsBtnResults.addEventListener('click', () => {
+                const isOpen = moreActionsPanelResults.classList.contains('open');
+                moreActionsPanelResults.classList.toggle('open');
+            });
+        }
+        
+        // More actions panel buttons
+        if (document.getElementById('export-history-btn-more')) {
+            document.getElementById('export-history-btn-more').addEventListener('click', exportAllHistory);
+        }
+        if (document.getElementById('import-history-btn-more')) {
+            document.getElementById('import-history-btn-more').addEventListener('click', importHistory);
+        }
+        if (document.getElementById('settings-btn-more')) {
+            document.getElementById('settings-btn-more').addEventListener('click', toggleSettings);
+        }
+        if (document.getElementById('export-pdf-btn-more')) {
+            document.getElementById('export-pdf-btn-more').addEventListener('click', exportPdf);
+        }
+        if (document.getElementById('new-review-btn-more')) {
+            document.getElementById('new-review-btn-more').addEventListener('click', () => {
+                docInput.value = ''; // Clear the file input
+                fileNameDisplay.textContent = '点击或拖拽文件到此处';
+                docViewer.innerHTML = '<h2>请在右侧上传 .docx 合同文件</h2>';
+                showView('action');
+            });
+        }
 
         // Initialize history records
         loadHistoryRecords();
