@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>合同生成工具</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #5A67D8;
+            --primary-hover: #4C51BF;
+            --secondary-color: #F7FAFC;
+            --border-color: #E2E8F0;
+            --text-color: #2D3748;
+            --text-secondary: #718096;
+            --font-sans: 'Inter', 'Noto Sans SC', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: white;
+            padding: 20px;
+        }
+
+        .tool-header {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .tool-header h1 {
+            color: var(--text-color);
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        .tool-header p {
+            color: var(--text-secondary);
+            font-size: 1em;
+        }
+
+        .tool-content {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--secondary-color);
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .coming-soon {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .coming-soon i {
+            font-size: 4em;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .coming-soon h2 {
+            color: var(--text-color);
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .coming-soon p {
+            color: var(--text-secondary);
+            font-size: 1em;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="tool-header">
+        <h1><i class="fa-solid fa-file-pen"></i> 合同生成工具</h1>
+        <p>智能生成各类法律合同，提高工作效率</p>
+    </div>
+
+    <div class="tool-content">
+        <div class="coming-soon">
+            <i class="fa-solid fa-tools"></i>
+            <h2>功能开发中</h2>
+            <p>合同生成工具正在开发中，即将上线...</p>
+            <p>该工具将提供：</p>
+            <ul style="text-align: left; max-width: 400px; margin: 20px auto;">
+                <li>合同模板自动生成</li>
+                <li>合同条款智能撰写</li>
+                <li>合同风险评估</li>
+                <li>合同条款定制</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'getStatus') {
+                window.parent.postMessage({
+                    type: 'status',
+                    tool: 'document-gen',
+                    status: 'available'
+                }, '*');
+            }
+        });
+    </script>
+</body>
+</html> 
