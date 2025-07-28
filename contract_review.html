@@ -307,88 +307,163 @@
             opacity: 0.2;
             animation: pan-grid 30s linear infinite;
         }
-        .spinner-overlay::after {
-            content: '';
-            position: absolute;
-            top: -100%;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
-            animation: scan-line 5s ease-in-out infinite;
-            animation-delay: 1s;
-        }
         @keyframes pan-grid {
             0% { background-position: 0 0; }
             100% { background-position: 50px 50px; }
         }
-        @keyframes scan-line {
-            0% { top: -100%; }
-            100% { top: 100%; }
-        }
-        /* --- Sci-Fi Spinner --- */
-        .sci-fi-spinner {
-            position: relative;
-            width: 120px;
-            height: 120px;
+        /* --- Progress-based Processing Animation --- */
+        .processing-container {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            gap: 40px;
+            max-width: 600px;
+            width: 100%;
         }
-        .sci-fi-spinner .ring {
+        
+        .progress-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+        }
+        
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            opacity: 0.5;
+        }
+        
+        .progress-step.active {
+            opacity: 1;
+            background: rgba(90, 103, 216, 0.2);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 20px rgba(90, 103, 216, 0.3);
+        }
+        
+        .progress-step.completed {
+            opacity: 1;
+            background: rgba(56, 161, 105, 0.2);
+            border-color: #38A169;
+        }
+        
+        .step-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .progress-step.active .step-icon {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            animation: pulse-icon 1.5s ease-in-out infinite;
+        }
+        
+        .progress-step.completed .step-icon {
+            background: #38A169;
+            border-color: #38A169;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+        
+        .step-description {
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .step-status {
+            font-size: 0.8em;
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 30px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), #7F9CF5);
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+        
+        .progress-fill::after {
+            content: '';
             position: absolute;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            animation-timing-function: linear;
-            animation-iteration-count: infinite;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s ease-in-out infinite;
         }
-        .sci-fi-spinner .ring-1 {
-            width: 100px;
-            height: 100px;
-            border-top-color: var(--primary-color);
-            animation-name: spin-clockwise;
-            animation-duration: 2s;
+        
+        .overall-status {
+            text-align: center;
+            margin-top: 20px;
         }
-        .sci-fi-spinner .ring-2 {
-            width: 80px;
-            height: 80px;
-            border-bottom-color: #7F9CF5;
-            animation-name: spin-counter-clockwise;
-            animation-duration: 1.5s;
+        
+        .overall-status h3 {
+            font-size: 1.4em;
+            color: #fff;
+            margin: 0 0 10px 0;
+            font-weight: 600;
         }
-        .sci-fi-spinner .ring-3 {
-            width: 60px;
-            height: 60px;
-            border-left-color: var(--primary-color);
-            animation-name: spin-clockwise;
-            animation-duration: 3s;
+        
+        .overall-status p {
+            font-size: 1em;
+            color: rgba(255, 255, 255, 0.8);
+            margin: 0;
         }
-        .sci-fi-spinner .core {
-            width: 20px;
-            height: 20px;
-            background-color: #fff;
-            border-radius: 50%;
-            box-shadow: 0 0 15px var(--primary-color), 0 0 25px #fff;
-            animation: pulse 1.2s ease-in-out infinite alternate;
-        }
-        @keyframes spin-clockwise {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        @keyframes spin-counter-clockwise {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(-360deg); }
-        }
-        @keyframes pulse {
-            0% {
-                transform: scale(0.8);
-                box-shadow: 0 0 10px var(--primary-color), 0 0 15px #fff;
+        
+        @keyframes pulse-icon {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(90, 103, 216, 0.7);
             }
-            100% {
-                transform: scale(1.2);
-                box-shadow: 0 0 20px var(--primary-color), 0 0 35px #fff;
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 0 0 10px rgba(90, 103, 216, 0);
             }
         }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        /* 保留原有的状态文字样式作为备用 */
         #spinner-status-text {
             font-size: 1.2em;
             color: #fff;
@@ -1087,13 +1162,51 @@
 
     <!-- Processing View (Full Screen Overlay) -->
     <div id="processing-view" class="spinner-overlay">
-        <div class="sci-fi-spinner">
-            <div class="ring ring-1"></div>
-            <div class="ring ring-2"></div>
-            <div class="ring ring-3"></div>
-            <div class="core"></div>
+        <div class="processing-container">
+            <div class="overall-status">
+                <h3>智能合同审核进行中</h3>
+                <p id="spinner-status-text">正在准备...</p>
+            </div>
+            
+            <div class="progress-steps">
+                <div class="progress-step" id="step-upload">
+                    <div class="step-icon">
+                        <i class="fa-solid fa-cloud-upload-alt"></i>
+                    </div>
+                    <div class="step-content">
+                        <div class="step-title">上传文档</div>
+                        <div class="step-description">正在上传合同文件到服务器</div>
+                        <div class="step-status" id="step-upload-status">等待中...</div>
+                    </div>
+                </div>
+                
+                <div class="progress-step" id="step-analyze">
+                    <div class="step-icon">
+                        <i class="fa-solid fa-brain"></i>
+                    </div>
+                    <div class="step-content">
+                        <div class="step-title">AI智能分析</div>
+                        <div class="step-description">AI正在深度分析合同内容，包括主体审核、条款分析、风险评估等</div>
+                        <div class="step-status" id="step-analyze-status">等待中...</div>
+                    </div>
+                </div>
+                
+                <div class="progress-step" id="step-complete">
+                    <div class="step-icon">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                    <div class="step-content">
+                        <div class="step-title">生成报告</div>
+                        <div class="step-description">生成完整的审核报告和可视化图表</div>
+                        <div class="step-status" id="step-complete-status">等待中...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
         </div>
-        <p id="spinner-status-text">正在准备...</p>
     </div>
 
     <script>
@@ -1128,6 +1241,7 @@
         const processingView = document.getElementById('processing-view');
         const resultsView = document.getElementById('results-view');
         const spinnerStatusText = document.getElementById('spinner-status-text');
+        const progressFill = document.getElementById('progress-fill');
 
         const submitBtn = document.getElementById('submitBtn');
         const settingsBtn = document.getElementById('settings-btn');
@@ -1173,6 +1287,8 @@
         let currentHistorySearch = '';
         let historyRecords = [];
         let currentReviewResults = null;
+        let currentStep = 0;
+        const totalSteps = 3;
 
         // --- View Management ---
         function showView(viewName) {
@@ -1196,6 +1312,120 @@
             }
         }
 
+        // --- Progress Management Functions ---
+        function resetProgress() {
+            currentStep = 0;
+            currentProgress = 0;
+            progressFill.style.width = '0%';
+            
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+            
+            // Reset all steps
+            for (let i = 1; i <= totalSteps; i++) {
+                const step = document.getElementById(`step-${getStepName(i)}`);
+                if (step) {
+                    step.classList.remove('active', 'completed');
+                    const statusEl = document.getElementById(`step-${getStepName(i)}-status`);
+                    if (statusEl) statusEl.textContent = '等待中...';
+                }
+            }
+        }
+        
+        function getStepName(stepNumber) {
+            const stepNames = ['upload', 'analyze', 'complete'];
+            return stepNames[stepNumber - 1];
+        }
+        
+        function updateStep(stepNumber, status, isActive = false, isCompleted = false) {
+            const stepName = getStepName(stepNumber);
+            const step = document.getElementById(`step-${stepName}`);
+            const statusEl = document.getElementById(`step-${stepName}-status`);
+            
+            if (step && statusEl) {
+                step.classList.remove('active', 'completed');
+                if (isCompleted) {
+                    step.classList.add('completed');
+                } else if (isActive) {
+                    step.classList.add('active');
+                }
+                statusEl.textContent = status;
+            }
+        }
+        
+        function updateProgress(stepNumber) {
+            currentStep = stepNumber;
+            const progress = (stepNumber / totalSteps) * 100;
+            progressFill.style.width = `${progress}%`;
+        }
+        
+        // 平滑进度条动画
+        let progressInterval = null;
+        let currentProgress = 0;
+        let targetProgress = 0;
+        
+        function startSmoothProgress(targetPercent, duration = 1000) {
+            if (progressInterval) {
+                clearInterval(progressInterval);
+            }
+            
+            const startProgress = currentProgress;
+            const progressDiff = targetPercent - startProgress;
+            const steps = 60; // 60fps
+            const stepTime = duration / steps;
+            const stepProgress = progressDiff / steps;
+            let stepCount = 0;
+            
+            progressInterval = setInterval(() => {
+                stepCount++;
+                currentProgress = startProgress + (stepProgress * stepCount);
+                
+                if (currentProgress >= targetPercent) {
+                    currentProgress = targetPercent;
+                    clearInterval(progressInterval);
+                    progressInterval = null;
+                }
+                
+                progressFill.style.width = `${currentProgress}%`;
+            }, stepTime);
+        }
+        
+        function startSlowProgress() {
+            if (progressInterval) {
+                clearInterval(progressInterval);
+            }
+            
+            // 从当前进度缓慢增长到90%，每秒增长1%
+            const startProgress = currentProgress;
+            const targetProgress = 90;
+            const stepProgress = 1; // 每秒增长1%
+            const stepTime = 1000; // 1秒一步
+            let stepCount = 0;
+            
+            progressInterval = setInterval(() => {
+                stepCount++;
+                currentProgress = startProgress + (stepProgress * stepCount);
+                
+                if (currentProgress >= targetProgress) {
+                    currentProgress = targetProgress;
+                    clearInterval(progressInterval);
+                    progressInterval = null;
+                }
+                
+                progressFill.style.width = `${currentProgress}%`;
+            }, stepTime);
+        }
+        
+        function completeProgress() {
+            if (progressInterval) {
+                clearInterval(progressInterval);
+            }
+            currentProgress = 100;
+            progressFill.style.width = '100%';
+        }
+        
         function resetResults() {
             resultsContent.innerHTML = `
                 <div id="content-level-container"></div>
@@ -1347,14 +1577,44 @@
             showView('processing');
             submitBtn.disabled = true;
             resetResults();
+            resetProgress();
             currentReviewResults = null; // 重置审核结果
 
             try {
-                spinnerStatusText.textContent = "步骤 1/2: 正在上传文档...";
+                // 步骤1: 上传文档
+                updateStep(1, "正在上传...", true);
+                startSmoothProgress(10, 1000); // 平滑增长到10%
+                spinnerStatusText.textContent = "正在上传合同文档...";
                 const fileId = await uploadFile(docFile, apiKey);
-                spinnerStatusText.textContent = "步骤 2/2: AI分析中，请稍候...";
+                updateStep(1, "上传完成", false, true);
+                
+                // 步骤2: AI分析
+                updateStep(2, "正在分析...", true);
+                startSmoothProgress(20, 1000); // 平滑增长到20%
+                spinnerStatusText.textContent = "AI正在深度分析合同内容，请稍候...";
+                
+                // 开始缓慢进度增长
+                setTimeout(() => {
+                    startSlowProgress(); // 开始缓慢增长到90%
+                }, 2000);
+                
                 await executeWorkflow(fileId, apiKey);
-                showView('results');
+                
+                // 步骤3: 生成报告
+                updateStep(3, "正在生成...", true);
+                startSmoothProgress(95, 1000); // 平滑增长到95%
+                spinnerStatusText.textContent = "正在生成审核报告...";
+                
+                // 模拟报告生成时间
+                setTimeout(() => {
+                    updateStep(3, "生成完成", false, true);
+                    completeProgress(); // 完成到100%
+                    spinnerStatusText.textContent = "审核完成！";
+                    
+                    setTimeout(() => {
+                        showView('results');
+                    }, 1000);
+                }, 1500);
             } catch (error) {
                 console.error('主流程出错:', error);
                 resultsContent.innerHTML = `<div class="error-box"><h3>审核失败</h3><p>${error.message}</p></div>`;
@@ -1397,17 +1657,19 @@
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let buffer = '';
+            
             while (true) {
                 const { value, done } = await reader.read();
                 if (done) {
                     if (buffer.length > 0) processRawBuffer(buffer);
-                    spinnerStatusText.textContent = "分析完成！";
                     break;
                 }
                 buffer += decoder.decode(value, { stream: true });
                 const eventBlocks = buffer.split('\n\n');
                 buffer = eventBlocks.pop() || '';
-                for (const block of eventBlocks) { processRawBuffer(block); }
+                for (const block of eventBlocks) { 
+                    processRawBuffer(block);
+                }
             }
         }
         
@@ -1423,11 +1685,13 @@
                     const jsonData = JSON.parse(dataStr);
                     processStreamEvent(eventType, jsonData);
                 } catch (e) { console.warn("无法解析的JSON数据:", dataStr, e); }
-            } else { processStreamEvent(eventType, {}); }
+            } else { 
+                processStreamEvent(eventType, {});
+            }
         }
 
         function processStreamEvent(eventType, data) {
-             if (eventType === 'Message' && data.content) {
+            if (eventType === 'Message' && data.content) {
                 try {
                     const parsedData = JSON.parse(data.content);
                     for (const key in parsedData) {
