@@ -1297,10 +1297,34 @@
             resultsView.style.display = 'none';
 
             // Control left panel visibility by adding/removing a class on the container
-            if (viewName === 'results') {
-                mainContainer.classList.add('state-results');
-            } else {
+            if (viewName === 'results' || viewName === 'action') {
+                if (viewName === 'results') {
+                    mainContainer.classList.add('state-results');
+                } else {
+                    mainContainer.classList.remove('state-results');
+                }
+                // 在结果视图和提交审核视图中隐藏左边的合同原文面板
+                const leftPanel = document.querySelector('.left-panel');
+                if (leftPanel) {
+                    leftPanel.style.display = 'none';
+                }
+                // 让右边面板占满整个宽度
+                const rightPanel = document.querySelector('.right-panel');
+                if (rightPanel) {
+                    rightPanel.style.width = '100%';
+                }
+            } else if (viewName === 'processing') {
                 mainContainer.classList.remove('state-results');
+                // 在处理中视图中显示左边面板（显示上传的文件）
+                const leftPanel = document.querySelector('.left-panel');
+                if (leftPanel) {
+                    leftPanel.style.display = 'flex';
+                }
+                // 恢复右边面板的原始宽度
+                const rightPanel = document.querySelector('.right-panel');
+                if (rightPanel) {
+                    rightPanel.style.width = '';
+                }
             }
             
             if (viewName === 'action') {
