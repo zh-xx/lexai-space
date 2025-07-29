@@ -58,46 +58,22 @@
             font-size: 1.3em;
             font-weight: 600;
             color: var(--primary-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+
+        .header-left .logo:hover {
+            background: var(--secondary-color);
+            transform: translateY(-1px);
         }
 
         .header-left .logo i {
             font-size: 1.5em;
         }
 
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
 
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            background: var(--secondary-color);
-            border-radius: 6px;
-            color: var(--text-secondary);
-            font-size: 0.9em;
-        }
-
-        .settings-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 6px;
-            background: var(--secondary-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: var(--text-secondary);
-        }
-
-        .settings-btn:hover {
-            background: var(--primary-color);
-            color: white;
-        }
 
         /* 主容器 */
         .app-container {
@@ -115,21 +91,146 @@
             flex-direction: column;
             overflow: hidden;
             box-shadow: 2px 0 4px rgba(0,0,0,0.05);
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .sidebar.collapsed {
+            width: 70px;
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            top: 20px;
+            right: 8px;
+            width: 32px;
+            height: 32px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            gap: 2px;
+            padding: 8px;
+        }
+
+        .toggle-panel {
+            width: 20px;
+            height: 16px;
+            border: 1.5px solid var(--text-secondary);
+            border-radius: 3px;
+            position: relative;
+            background: white;
+            transition: all 0.2s ease;
+        }
+
+        .panel-divider {
+            position: absolute;
+            left: 6px;
+            top: 0;
+            bottom: 0;
+            width: 1.5px;
+            background: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .panel-arrow {
+            position: absolute;
+            right: 3px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 5px solid var(--text-secondary);
+            border-top: 3px solid transparent;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(90, 103, 216, 0.25);
+            transform: scale(1.08);
+        }
+
+        .sidebar-toggle:hover .toggle-panel {
+            border-color: white;
+        }
+
+        .sidebar-toggle:hover .panel-divider {
+            background: white;
+        }
+
+        .sidebar-toggle:hover .panel-arrow {
+            border-left-color: white;
+        }
+
+        .sidebar-toggle:active {
+            transform: scale(0.95);
+        }
+
+        /* 收缩状态下的按钮样式 */
+        .sidebar.collapsed .sidebar-toggle {
+            position: static;
+            margin: 10px auto;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+        }
+
+        .sidebar.collapsed .toggle-panel {
+            width: 24px;
+            height: 20px;
+        }
+
+        .sidebar.collapsed .panel-divider {
+            left: 8px;
+        }
+
+        .sidebar.collapsed .panel-arrow {
+            right: 4px;
+            border-left-width: 6px;
+            border-top-width: 4px;
+            border-bottom-width: 4px;
+        }
+
+        /* 收缩状态下的动画效果 */
+        .sidebar.collapsed .panel-arrow {
+            transform: translateY(-50%) rotate(0deg);
+        }
+
+        /* 展开状态下的动画效果 */
+        .panel-arrow {
+            transform: translateY(-50%) rotate(180deg);
         }
 
         .sidebar-header {
             padding: 20px;
             border-bottom: 1px solid var(--border-color);
+            position: relative;
         }
 
         .sidebar-header h3 {
             font-size: 1.1em;
             color: var(--text-color);
             margin-bottom: 15px;
+            padding-right: 30px;
         }
 
         .search-box {
             position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .search-box:focus-within {
+            transform: translateY(0);
         }
 
         .search-box input {
@@ -138,13 +239,20 @@
             border: 1px solid var(--border-color);
             border-radius: 6px;
             font-size: 0.9em;
-            transition: border-color 0.2s;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            background: white;
         }
 
         .search-box input:focus {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.1);
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-secondary);
+            font-family: inherit;
         }
 
         .search-box i {
@@ -154,6 +262,12 @@
             transform: translateY(-50%);
             color: var(--text-secondary);
             font-size: 0.9em;
+            transition: color 0.2s ease;
+            pointer-events: none;
+        }
+
+        .search-box:focus-within i {
+            color: var(--primary-color);
         }
 
         /* 工具导航 */
@@ -163,28 +277,17 @@
             padding: 10px 0;
         }
 
-        .tool-group {
-            margin-bottom: 20px;
-        }
 
-        .group-title {
-            padding: 0 20px 10px;
-            font-size: 0.8em;
-            font-weight: 600;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
 
         .tool-item {
             display: flex;
             align-items: center;
-            padding: 12px 20px;
+            padding: 8px 16px;
             cursor: pointer;
             transition: all 0.2s;
             position: relative;
-            margin: 0 10px;
-            border-radius: 8px;
+            margin: 0 8px;
+            border-radius: 6px;
         }
 
         .tool-item:hover {
@@ -197,16 +300,17 @@
         }
 
         .tool-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
             background: var(--secondary-color);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 12px;
+            margin-right: 10px;
             color: var(--primary-color);
             transition: all 0.2s;
+            flex-shrink: 0;
         }
 
         .tool-item.active .tool-icon {
@@ -216,19 +320,63 @@
 
         .tool-info {
             flex: 1;
+            min-width: 0;
         }
 
         .tool-name {
             font-weight: 500;
             color: var(--text-color);
-            margin-bottom: 2px;
-            font-size: 0.95em;
+            margin-bottom: 1px;
+            font-size: 0.9em;
         }
 
         .tool-desc {
-            font-size: 0.8em;
+            font-size: 0.75em;
             color: var(--text-secondary);
-            line-height: 1.3;
+            line-height: 1.2;
+        }
+
+        /* 收缩状态下的样式 */
+        .sidebar.collapsed .tool-info {
+            display: none;
+        }
+
+        .sidebar.collapsed .tool-item {
+            justify-content: center;
+            align-items: center;
+            padding: 12px 0;
+            margin: 4px 6px;
+            width: calc(100% - 12px);
+            border-radius: 8px;
+            display: flex;
+            position: relative;
+        }
+
+        .sidebar.collapsed .tool-icon {
+            margin: 0;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+        }
+
+        .sidebar.collapsed .tool-status {
+            display: none;
+        }
+
+        .sidebar.collapsed .tool-nav {
+            margin-top: 10px;
+            padding-top: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .sidebar.collapsed .sidebar-header {
+            display: none;
         }
 
         .tool-status {
@@ -271,47 +419,9 @@
             background: white;
         }
 
-        /* 侧边栏底部 */
-        .sidebar-footer {
-            padding: 20px;
-            border-top: 1px solid var(--border-color);
-            background: var(--secondary-color);
-        }
 
-        .recent-tools h4 {
-            font-size: 0.9em;
-            color: var(--text-secondary);
-            margin-bottom: 10px;
-            font-weight: 500;
-        }
 
-        .recent-tool-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
 
-        .recent-tool-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            font-size: 0.85em;
-            color: var(--text-secondary);
-        }
-
-        .recent-tool-item:hover {
-            background: rgba(90, 103, 216, 0.1);
-            color: var(--primary-color);
-        }
-
-        .recent-tool-item i {
-            font-size: 0.9em;
-            width: 16px;
-        }
 
         /* 动画 */
         @keyframes pulse {
@@ -412,21 +522,20 @@
                 <span>法律AI工作台</span>
             </div>
         </div>
-        <div class="header-right">
-            <div class="user-info">
-                <i class="fa-solid fa-user"></i>
-                <span>律师用户</span>
-            </div>
-            <div class="settings-btn" id="settings-btn">
-                <i class="fa-solid fa-gear"></i>
-            </div>
-        </div>
+
     </header>
 
     <!-- 主容器 -->
     <div class="app-container">
         <!-- 侧边栏 -->
         <aside class="sidebar" id="sidebar">
+                    <div class="sidebar-toggle" id="sidebar-toggle" title="收缩/展开边栏">
+            <div class="toggle-panel">
+                <div class="panel-divider"></div>
+                <div class="panel-arrow"></div>
+            </div>
+        </div>
+            
             <div class="sidebar-header">
                 <h3>工具导航</h3>
                 <div class="search-box">
@@ -436,43 +545,28 @@
             </div>
             
             <nav class="tool-nav">
-                <div class="tool-group">
-                    <div class="group-title">合同审核</div>
-                    <div class="tool-item" data-tool="contract-review">
-                        <div class="tool-icon">
-                            <i class="fa-solid fa-file-contract"></i>
-                        </div>
-                        <div class="tool-info">
-                            <div class="tool-name">合同审核</div>
-                            <div class="tool-desc">智能审核合同条款</div>
-                        </div>
-                        <div class="tool-status available"></div>
+                <div class="tool-item" data-tool="contract-review">
+                    <div class="tool-icon">
+                        <i class="fa-solid fa-file-contract"></i>
                     </div>
+                    <div class="tool-info">
+                        <div class="tool-name">合同审核</div>
+                        <div class="tool-desc">智能审核合同条款</div>
+                    </div>
+                    <div class="tool-status available"></div>
                 </div>
                 
-                <div class="tool-group">
-                    <div class="group-title">合同生成</div>
-                    <div class="tool-item active" data-tool="document-gen">
-                        <div class="tool-icon">
-                            <i class="fa-solid fa-file-pen"></i>
-                        </div>
-                        <div class="tool-info">
-                            <div class="tool-name">合同生成</div>
-                            <div class="tool-desc">智能生成法律文书</div>
-                        </div>
-                        <div class="tool-status available"></div>
+                <div class="tool-item" data-tool="document-gen">
+                    <div class="tool-icon">
+                        <i class="fa-solid fa-file-pen"></i>
                     </div>
+                    <div class="tool-info">
+                        <div class="tool-name">合同生成</div>
+                        <div class="tool-desc">智能生成法律文书</div>
+                    </div>
+                    <div class="tool-status available"></div>
                 </div>
             </nav>
-            
-            <div class="sidebar-footer">
-                <div class="recent-tools">
-                    <h4>最近使用</h4>
-                    <div class="recent-tool-list">
-                        <!-- 动态生成最近使用的工具 -->
-                    </div>
-                </div>
-            </div>
         </aside>
 
         <!-- 主内容区域 -->
@@ -481,7 +575,11 @@
                 <div class="loading-overlay" id="loading-overlay">
                     <div class="loading-spinner"></div>
                 </div>
-                <iframe id="tool-frame" src="tools/document-gen.html" frameborder="0"></iframe>
+                
+
+                
+                <!-- 工具iframe -->
+                <iframe id="tool-frame" src="about:blank" frameborder="0" style="display: none;"></iframe>
             </div>
         </main>
     </div>
@@ -489,7 +587,7 @@
     <script>
         class ToolManager {
             constructor() {
-                this.currentTool = 'document-gen';
+                this.currentTool = null; // 初始化为null，表示显示首页
                 this.tools = {
                     'contract-review': {
                         name: '合同审核',
@@ -507,16 +605,29 @@
                     }
                 };
                 
+                // 内部使用的首页配置
+                this.homepageConfig = {
+                    name: '法律AI工作台',
+                    url: 'tools/homepage.html',
+                    icon: 'fa-home',
+                    description: '返回首页',
+                    status: 'available'
+                };
+                
                 this.init();
             }
             
             init() {
                 this.bindEvents();
-                this.loadRecentTools();
-                this.hideLoading();
+                this.switchTool('homepage'); // 默认显示首页
             }
             
             bindEvents() {
+                // 顶部logo点击事件 - 返回首页
+                document.querySelector('.header-left .logo').addEventListener('click', () => {
+                    this.switchTool('homepage');
+                });
+                
                 // 工具切换事件
                 document.querySelectorAll('.tool-item').forEach(item => {
                     item.addEventListener('click', (e) => {
@@ -525,15 +636,23 @@
                     });
                 });
                 
+
+                
                 // 搜索功能
                 const searchInput = document.getElementById('tool-search');
                 searchInput.addEventListener('input', (e) => {
                     this.filterTools(e.target.value);
                 });
                 
+                // 边栏收缩/展开功能
+                const sidebarToggle = document.getElementById('sidebar-toggle');
+                const sidebar = document.getElementById('sidebar');
+                sidebarToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('collapsed');
+                });
+                
                 // 移动端菜单
                 const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-                const sidebar = document.getElementById('sidebar');
                 mobileMenuBtn.addEventListener('click', () => {
                     sidebar.classList.toggle('open');
                 });
@@ -547,6 +666,23 @@
             }
             
             switchTool(toolId) {
+                if (toolId === 'homepage') {
+                    // 处理首页
+                    this.showLoading();
+                    this.clearSidebarState();
+                    
+                    const iframe = document.getElementById('tool-frame');
+                    iframe.style.display = 'block';
+                    iframe.src = this.homepageConfig.url;
+                    
+                    this.currentTool = 'homepage';
+                    
+                    iframe.onload = () => {
+                        this.hideLoading();
+                    };
+                    return;
+                }
+                
                 if (!this.tools[toolId]) return;
                 
                 // 显示加载状态
@@ -555,15 +691,13 @@
                 // 更新侧边栏状态
                 this.updateSidebarState(toolId);
                 
-                // 更新iframe内容
+                // 显示工具iframe
                 const iframe = document.getElementById('tool-frame');
+                iframe.style.display = 'block';
                 iframe.src = this.tools[toolId].url;
                 
                 // 更新当前工具
                 this.currentTool = toolId;
-                
-                // 保存到最近使用
-                this.addToRecent(toolId);
                 
                 // 更新工具状态
                 this.updateToolStatus(toolId, 'processing');
@@ -591,6 +725,13 @@
                 }
             }
             
+            clearSidebarState() {
+                // 移除所有active状态
+                document.querySelectorAll('.tool-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+            }
+            
             updateToolStatus(toolId, status) {
                 const toolItem = document.querySelector(`[data-tool="${toolId}"]`);
                 if (toolItem) {
@@ -611,37 +752,7 @@
                 });
             }
             
-            addToRecent(toolId) {
-                const recentTools = JSON.parse(localStorage.getItem('recentTools') || '[]');
-                const newRecent = [toolId, ...recentTools.filter(id => id !== toolId)].slice(0, 5);
-                localStorage.setItem('recentTools', JSON.stringify(newRecent));
-                this.loadRecentTools();
-            }
-            
-            loadRecentTools() {
-                const recentTools = JSON.parse(localStorage.getItem('recentTools') || '[]');
-                const recentList = document.querySelector('.recent-tool-list');
-                
-                recentList.innerHTML = recentTools.map(toolId => {
-                    const tool = this.tools[toolId];
-                    if (!tool) return '';
-                    
-                    return `
-                        <div class="recent-tool-item" data-tool="${toolId}">
-                            <i class="fa-solid ${tool.icon}"></i>
-                            <span>${tool.name}</span>
-                        </div>
-                    `;
-                }).join('');
-                
-                // 绑定最近工具点击事件
-                recentList.querySelectorAll('.recent-tool-item').forEach(item => {
-                    item.addEventListener('click', (e) => {
-                        const toolId = e.currentTarget.dataset.tool;
-                        this.switchTool(toolId);
-                    });
-                });
-            }
+
             
             showLoading() {
                 document.getElementById('loading-overlay').style.display = 'flex';
@@ -650,6 +761,8 @@
             hideLoading() {
                 document.getElementById('loading-overlay').style.display = 'none';
             }
+            
+
         }
 
         // 初始化工具管理器

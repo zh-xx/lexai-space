@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首页</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* 首页样式 */
+        .homepage {
+            height: 100%;
+            padding: 40px;
+            overflow-y: auto;
+            background: white;
+            color: #2D3748;
+        }
+
+        .homepage-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .welcome-section {
+            margin-bottom: 60px;
+        }
+
+        .welcome-title {
+            font-size: 2.5em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #5A67D8;
+        }
+
+        .welcome-subtitle {
+            font-size: 1.2em;
+            color: #718096;
+            margin-bottom: 40px;
+        }
+
+        .tools-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .tool-overview-card {
+            background: #F7FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .tool-overview-card:hover {
+            border-color: #5A67D8;
+            box-shadow: 0 4px 12px rgba(90, 103, 216, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .tool-overview-icon {
+            font-size: 2.5em;
+            color: #5A67D8;
+            margin-bottom: 20px;
+        }
+
+        .tool-overview-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2D3748;
+        }
+
+        .tool-overview-desc {
+            color: #718096;
+            line-height: 1.5;
+        }
+
+        .welcome-message {
+            background: #F7FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .welcome-message h3 {
+            color: #5A67D8;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .welcome-message p {
+            color: #718096;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="homepage">
+        <div class="homepage-content">
+            <!-- 欢迎区域 -->
+            <div class="welcome-section">
+                <h1 class="welcome-title">欢迎使用法律AI工作台</h1>
+                <p class="welcome-subtitle">智能化的法律文书处理与合同审查平台</p>
+            </div>
+
+            <!-- 工具概览 -->
+            <div class="tools-overview">
+                <div class="tool-overview-card" data-tool="contract-review">
+                    <div class="tool-overview-icon">
+                        <i class="fa-solid fa-file-contract"></i>
+                    </div>
+                    <h3 class="tool-overview-title">合同审核</h3>
+                    <p class="tool-overview-desc">智能审核合同条款，识别风险点</p>
+                </div>
+                <div class="tool-overview-card" data-tool="document-gen">
+                    <div class="tool-overview-icon">
+                        <i class="fa-solid fa-file-pen"></i>
+                    </div>
+                    <h3 class="tool-overview-title">合同生成</h3>
+                    <p class="tool-overview-desc">智能生成各类法律文书</p>
+                </div>
+            </div>
+
+            <!-- 欢迎信息 -->
+            <div class="welcome-message">
+                <h3>开始使用</h3>
+                <p>选择左侧导航栏中的工具开始使用，或直接点击上方的工具卡片快速进入对应功能。</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 工具卡片点击事件
+        document.querySelectorAll('.tool-overview-card[data-tool]').forEach(card => {
+            card.addEventListener('click', (e) => {
+                const toolId = e.currentTarget.dataset.tool;
+                // 通知父窗口切换工具
+                if (window.parent && window.parent.toolManager) {
+                    window.parent.toolManager.switchTool(toolId);
+                }
+            });
+        });
+    </script>
+</body>
+</html> 
