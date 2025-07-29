@@ -25,6 +25,15 @@
             box-sizing: border-box;
         }
 
+        /* 整体缩放效果 - 模拟浏览器90%缩放 */
+        body {
+            transform: scale(0.9);
+            transform-origin: top left;
+            width: 111.11%; /* 100% / 0.9 = 111.11% 来补偿缩放 */
+            height: 111.11%;
+            overflow-x: hidden;
+        }
+        
         body {
             font-family: var(--font-sans);
             background: white;

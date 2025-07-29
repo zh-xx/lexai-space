@@ -6,6 +6,15 @@
     <title>首页</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
+        /* 整体缩放效果 - 模拟浏览器90%缩放 */
+        body {
+            transform: scale(0.9);
+            transform-origin: top left;
+            width: 111.11%; /* 100% / 0.9 = 111.11% 来补偿缩放 */
+            height: 111.11%;
+            overflow-x: hidden;
+        }
+        
         /* 首页样式 */
         .homepage {
             height: 100%;
