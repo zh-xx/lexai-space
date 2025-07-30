@@ -9,6 +9,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
+        /* 隐藏浏览器默认进度条 */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        * {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         :root {
             --primary-color: #5A67D8;
             --primary-hover: #4C51BF;
@@ -18,13 +30,7 @@
             --text-secondary: #718096;
             --font-sans: 'Inter', 'Noto Sans SC', sans-serif;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        
         /* 整体缩放效果 - 模拟浏览器90%缩放 */
         body {
             transform: scale(0.9);
@@ -36,81 +42,775 @@
         
         body {
             font-family: var(--font-sans);
-            background: white;
-            padding: 20px;
-        }
-
-        .tool-header {
-            margin-bottom: 30px;
-            text-align: center;
-        }
-
-        .tool-header h1 {
+            line-height: 1.6;
             color: var(--text-color);
-            font-size: 1.8em;
-            margin-bottom: 10px;
+            background: linear-gradient(135deg, #E9E6F5 0%, #D8E2F8 100%);
+            margin: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
-        .tool-header p {
-            color: var(--text-secondary);
-            font-size: 1em;
-        }
-
-        .tool-content {
-            max-width: 800px;
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            max-width: 960px;
             margin: 0 auto;
-            background: var(--secondary-color);
-            padding: 30px;
-            border-radius: 12px;
+            flex-grow: 1;
+        }
+
+        .right-panel {
+            height: 100%;
+            overflow-y: auto;
+            padding: 30px 40px;
+            box-sizing: border-box;
+            position: relative;
+            flex: 1.2;
+        }
+
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .app-header h1 {
+            margin: 0;
+            font-size: 1.8em;
+            color: var(--text-color);
+        }
+
+        .app-header h1 i {
+            color: var(--primary-color);
+            margin-right: 12px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header-actions button {
+            background: white;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            font-size: 14px;
+            width: auto;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-actions button:hover {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(90, 103, 216, 0.2);
+        }
+
+        .action-card {
+            background-color: white;
+            border: 1px solid var(--border-color);
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.07);
+        }
+
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+            height: 100%;
+        }
+
+        .form-group {
+            margin-bottom: 35px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-color);
+            font-size: 1.1em;
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1em;
+            background: white;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .textarea-container {
+            position: relative;
+        }
+
+        .optimize-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 0.75em;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            z-index: 10;
+        }
+
+        .optimize-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .optimize-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .optimize-btn i {
+            font-size: 0.8em;
+        }
+
+        .custom-input {
+            display: none;
+            margin-top: 6px;
+        }
+
+        .custom-input.show {
+            display: block;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary-color), #7F9CF5);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(90, 103, 216, 0.4);
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--text-color);
             border: 1px solid var(--border-color);
         }
 
-        .coming-soon {
-            text-align: center;
-            padding: 60px 20px;
+        .btn-secondary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--primary-color);
         }
 
-        .coming-soon i {
-            font-size: 4em;
-            color: var(--primary-color);
-            margin-bottom: 20px;
-        }
-
-        .coming-soon h2 {
-            color: var(--text-color);
-            font-size: 1.5em;
-            margin-bottom: 10px;
-        }
-
-        .coming-soon p {
+        .form-help {
+            font-size: 0.85em;
+            font-weight: 400;
             color: var(--text-secondary);
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        .required {
+            color: #E53E3E;
+            font-weight: 600;
+        }
+
+        .preview-container {
+            margin-top: 25px;
+            padding: 20px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: none;
+        }
+
+        .preview-container.show {
+            display: block;
+        }
+
+        .preview-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-color);
             font-size: 1em;
-            line-height: 1.6;
+        }
+
+        .preview-content {
+            background: var(--secondary-color);
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
+        /* --- Settings Modal --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+        .modal {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 450px;
+        }
+        .modal h3 { margin-top: 0; font-size: 1.2em; }
+        .modal .form-group { margin-bottom: 20px; }
+        .modal label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9em; }
+        .modal input, .modal select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 0.9em;
+        }
+        
+        .modal select {
+            background-color: white;
+            cursor: pointer;
+        }
+        
+        .modal select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.1);
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .modal-actions button {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .save-settings-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        .settings-btn:hover {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
         }
     </style>
 </head>
 <body>
-    <div class="tool-header">
-        <h1><i class="fa-solid fa-file-pen"></i> 合同生成工具</h1>
-        <p>智能生成各类法律合同，提高工作效率</p>
+    <div class="main-container">
+        <div class="right-panel">
+            <div class="app-header">
+                <h1><i class="fa-solid fa-file-pen"></i> 合同生成工具</h1>
+                <div class="header-actions">
+                    <button id="settings-btn">
+                        <i class="fa-solid fa-gear"></i> 设置
+                    </button>
+                </div>
+            </div>
+
+            <div class="action-card">
+            <form id="contract-form">
+                <div class="form-group">
+                    <label for="contract-type">合同类型 <span class="required">*</span></label>
+                    <select id="contract-type" required>
+                        <option value="">请选择合同类型</option>
+                        <option value="劳动合同">劳动合同</option>
+                        <option value="房屋租赁合同">房屋租赁合同</option>
+                        <option value="商品销售合同">商品销售合同</option>
+                        <option value="服务合同">服务合同</option>
+                        <option value="合伙协议">合伙协议</option>
+                        <option value="保密协议">保密协议</option>
+                        <option value="咨询服务合同">咨询服务合同</option>
+                        <option value="采购合同">采购合同</option>
+                        <option value="供应合同">供应合同</option>
+                        <option value="技术开发合同">技术开发合同</option>
+                        <option value="技术转让合同">技术转让合同</option>
+                        <option value="代理合同">代理合同</option>
+                        <option value="运输合同">运输合同</option>
+                        <option value="赠与合同">赠与合同</option>
+                        <option value="借款合同">借款合同</option>
+                        <option value="custom">其他（自定义）</option>
+                    </select>
+                    <input type="text" id="custom-type" class="custom-input" placeholder="请输入自定义合同类型">
+                    <div class="form-help">选择合同的基本类型，如不确定可选择"其他"并自定义</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="position">合同立场 <span class="required">*</span></label>
+                    <select id="position" required>
+                        <option value="">请选择立场</option>
+                        <option value="买受方">买受方（购买方/承租方/接受服务方）</option>
+                        <option value="出卖方">出卖方（销售方/出租方/提供服务方）</option>
+                        <option value="中立方">中立方（见证方/中介方）</option>
+                        <option value="代理人">代理人</option>
+                        <option value="custom">其他（自定义）</option>
+                    </select>
+                    <input type="text" id="custom-position" class="custom-input" placeholder="请输入自定义立场">
+                    <div class="form-help">选择您在合同中的角色和立场</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="background">合同背景 <span class="required">*</span></label>
+                    <div class="textarea-container">
+                        <textarea id="background" placeholder="请简要描述合同签订的背景、目的或缘由..." required></textarea>
+                        <button type="button" class="optimize-btn" id="optimize-background" title="AI优化">
+                            <i class="fa-solid fa-magic"></i> AI优化
+                        </button>
+                    </div>
+                    <div class="form-help">例如：张三需要购买李四的一台二手笔记本电脑，签订买卖合同</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="parties">主体信息 <span class="required">*</span></label>
+                    <div class="textarea-container">
+                        <textarea id="parties" placeholder="请填写合同各方的基本信息（如名称、证件号、联系方式、地址等）..." required></textarea>
+                        <button type="button" class="optimize-btn" id="optimize-parties" title="AI优化">
+                            <i class="fa-solid fa-magic"></i> AI优化
+                        </button>
+                    </div>
+                    <div class="form-help">例如：甲方（出卖方）：李四，身份证号：xxx，电话：xxx，地址：xxx；乙方（买受方）：张三，身份证号：xxx，电话：xxx，地址：xxx</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="business">业务模式 <span class="required">*</span></label>
+                    <div class="textarea-container">
+                        <textarea id="business" placeholder="请详细描述合同标的、价款、履行方式、交付方式、付款方式等业务细节..." required></textarea>
+                        <button type="button" class="optimize-btn" id="optimize-business" title="AI优化">
+                            <i class="fa-solid fa-magic"></i> AI优化
+                        </button>
+                    </div>
+                    <div class="form-help">例如：标的：MacBook Pro 2021款，价款：8000元，交付方式：当面交付，付款方式：现金支付，交付时间：2024年1月15日</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="other">其他要求（可选）</label>
+                    <div class="textarea-container">
+                        <textarea id="other" placeholder="如有特殊条款、风险控制、争议解决等要求请填写..."></textarea>
+                        <button type="button" class="optimize-btn" id="optimize-other" title="AI优化">
+                            <i class="fa-solid fa-magic"></i> AI优化
+                        </button>
+                    </div>
+                    <div class="form-help">例如：需要保密条款、竞业限制条款等</div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="preview-btn">
+                        <i class="fa-solid fa-eye"></i> 预览信息
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="generate-btn">
+                        <i class="fa-solid fa-magic"></i> 生成合同
+                    </button>
+                </div>
+            </form>
+
+            <div class="preview-container" id="preview-container">
+                <div class="preview-title">表单信息预览</div>
+                <div class="preview-content" id="preview-content"></div>
+            </div>
+        </div>
+    </div>
     </div>
 
-    <div class="tool-content">
-        <div class="coming-soon">
-            <i class="fa-solid fa-tools"></i>
-            <h2>功能开发中</h2>
-            <p>合同生成工具正在开发中，即将上线...</p>
-            <p>该工具将提供：</p>
-            <ul style="text-align: left; max-width: 400px; margin: 20px auto;">
-                <li>合同模板自动生成</li>
-                <li>合同条款智能撰写</li>
-                <li>合同风险评估</li>
-                <li>合同条款定制</li>
-            </ul>
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal">
+            <h3>设置</h3>
+            <div class="form-group">
+                <label for="api-key-input">Gemini API 密钥</label>
+                <input type="password" id="api-key-input" placeholder="请输入您的 Gemini API Key">
+            </div>
+            <div class="form-group">
+                <label for="model-select">选择模型</label>
+                <select id="model-select">
+                    <option value="gemini-2.5-pro">Gemini 2.5 Pro (最新，最强大)</option>
+                    <option value="gemini-2.5-flash">Gemini 2.5 Flash (最新，性价比高)</option>
+                    <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite (最新，成本效益)</option>
+                    <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash</option>
+                    <option value="gemini-2.0-pro-exp">Gemini 2.0 Pro</option>
+                    <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                    <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                    <option value="gemini-1.0-pro">Gemini 1.0 Pro</option>
+                </select>
+                <small style="color: var(--text-secondary); font-size: 0.9em; margin-top: 5px; display: block;">
+                    推荐使用Gemini 2.5系列，这是Google最新最强大的模型，支持思考功能和多模态理解
+                </small>
+            </div>
+            <div class="modal-actions">
+                <button id="cancel-settings-btn">取消</button>
+                <button class="save-settings-btn" id="save-settings-btn">保存</button>
+            </div>
         </div>
     </div>
 
     <script>
+        // 处理自定义输入显示/隐藏
+        function handleCustomInput(selectId, inputId) {
+            const select = document.getElementById(selectId);
+            const input = document.getElementById(inputId);
+            
+            select.addEventListener('change', function() {
+                if (this.value === 'custom') {
+                    input.classList.add('show');
+                    input.required = true;
+                } else {
+                    input.classList.remove('show');
+                    input.required = false;
+                    input.value = '';
+                }
+            });
+        }
+
+        // 初始化自定义输入处理
+        handleCustomInput('contract-type', 'custom-type');
+        handleCustomInput('position', 'custom-position');
+
+        // 预览功能
+        document.getElementById('preview-btn').addEventListener('click', function() {
+            const previewContent = document.getElementById('preview-content');
+            const previewContainer = document.getElementById('preview-container');
+            
+            let previewText = '';
+            
+            // 合同类型
+            const contractType = document.getElementById('contract-type').value;
+            const customType = document.getElementById('custom-type').value;
+            previewText += `合同类型：${contractType === 'custom' ? customType : contractType}\n\n`;
+            
+            // 立场
+            const position = document.getElementById('position').value;
+            const customPosition = document.getElementById('custom-position').value;
+            previewText += `立场：${position === 'custom' ? customPosition : position}\n\n`;
+            
+            // 其他字段
+            previewText += `合同背景：${document.getElementById('background').value}\n\n`;
+            previewText += `主体信息：${document.getElementById('parties').value}\n\n`;
+            previewText += `具体业务模式：${document.getElementById('business').value}\n\n`;
+            
+            const other = document.getElementById('other').value;
+            if (other) {
+                previewText += `其他要求：${other}`;
+            }
+            
+            previewContent.textContent = previewText;
+            previewContainer.classList.add('show');
+        });
+
+        // AI优化功能
+        async function optimizeContent(fieldId, fieldName) {
+            const textarea = document.getElementById(fieldId);
+            const optimizeBtn = document.getElementById(`optimize-${fieldId}`);
+            const originalContent = textarea.value.trim();
+            
+            if (!originalContent) {
+                alert('请先输入内容再进行AI优化');
+                return;
+            }
+            
+            // 检查API密钥
+            const apiKey = localStorage.getItem('geminiApiKey');
+            if (!apiKey) {
+                alert('请先在设置中配置您的Gemini API密钥');
+                toggleSettingsModal(true);
+                return;
+            }
+            
+            // 禁用按钮并显示加载状态
+            optimizeBtn.disabled = true;
+            optimizeBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 优化中...';
+            
+            try {
+                // 构建优化提示词
+                const prompt = `请优化以下${fieldName}的内容，使其更加专业、完整和准确。要求：
+1. 保持原有信息的完整性
+2. 使用更专业的法律术语
+3. 补充可能遗漏的重要信息
+4. 确保表述清晰、逻辑合理
+5. 符合中国法律规范
+
+原始内容：
+${originalContent}
+
+请直接返回优化后的内容，不要添加其他说明。`;
+                
+                // 获取用户选择的模型
+                const selectedModel = localStorage.getItem('geminiModel') || 'gemini-1.5-flash';
+                
+                console.log('发送API请求:', {
+                    url: `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey.substring(0, 10)}...`,
+                    model: selectedModel,
+                    prompt: prompt
+                });
+                
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: prompt
+                            }]
+                        }]
+                    })
+                });
+                
+                console.log('API响应状态:', response.status, response.statusText);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API错误响应:', errorText);
+                    throw new Error(`API请求失败: ${response.status} - ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('API响应数据:', data);
+                
+                if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+                    throw new Error('API响应格式错误，未找到优化内容');
+                }
+                
+                const optimizedContent = data.candidates[0].content.parts[0].text.trim();
+                
+                if (!optimizedContent) {
+                    throw new Error('AI返回的优化内容为空');
+                }
+                
+                // 显示优化结果确认对话框
+                const confirmed = confirm(`AI优化完成！\n\n原始内容：\n${originalContent}\n\n优化后内容：\n${optimizedContent}\n\n是否应用优化结果？`);
+                
+                if (confirmed) {
+                    textarea.value = optimizedContent;
+                }
+                
+            } catch (error) {
+                console.error('AI优化失败:', error);
+                console.error('错误详情:', {
+                    message: error.message,
+                    stack: error.stack
+                });
+                
+                let errorMessage = 'AI优化失败';
+                if (error.message.includes('API请求失败')) {
+                    if (error.message.includes('401')) {
+                        errorMessage = 'API密钥无效，请检查密钥设置';
+                    } else if (error.message.includes('403')) {
+                        errorMessage = 'API访问被拒绝，请检查密钥权限';
+                    } else if (error.message.includes('429')) {
+                        errorMessage = 'API请求过于频繁，请稍后再试';
+                    } else if (error.message.includes('500')) {
+                        errorMessage = '服务器内部错误，请稍后再试';
+                    } else {
+                        errorMessage = `API请求失败: ${error.message}`;
+                    }
+                } else if (error.message.includes('网络')) {
+                    errorMessage = '网络连接失败，请检查网络设置';
+                } else {
+                    errorMessage = `优化失败: ${error.message}`;
+                }
+                
+                alert(errorMessage);
+            } finally {
+                // 恢复按钮状态
+                optimizeBtn.disabled = false;
+                optimizeBtn.innerHTML = '<i class="fa-solid fa-magic"></i> AI优化';
+            }
+        }
+
+        // 绑定AI优化按钮事件
+        document.getElementById('optimize-background').addEventListener('click', () => {
+            optimizeContent('background', '合同背景');
+        });
+        
+        document.getElementById('optimize-parties').addEventListener('click', () => {
+            optimizeContent('parties', '主体信息');
+        });
+        
+        document.getElementById('optimize-business').addEventListener('click', () => {
+            optimizeContent('business', '业务模式');
+        });
+        
+        document.getElementById('optimize-other').addEventListener('click', () => {
+            optimizeContent('other', '其他要求');
+        });
+
+        // 表单提交处理
+        document.getElementById('contract-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // 验证必填字段
+            const requiredFields = ['contract-type', 'position', 'background', 'parties', 'business'];
+            let isValid = true;
+            
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (!field.value || field.value === '') {
+                    field.style.borderColor = '#E53E3E';
+                    isValid = false;
+                } else {
+                    field.style.borderColor = '';
+                }
+            });
+            
+            if (!isValid) {
+                alert('请填写所有必填字段');
+                return;
+            }
+            
+            // 检查API密钥
+            const apiKey = localStorage.getItem('geminiApiKey');
+            if (!apiKey) {
+                alert('请先在设置中配置您的Gemini API密钥。');
+                toggleSettingsModal(true);
+                return;
+            }
+            
+            // 收集表单数据
+            const formData = {
+                contractType: document.getElementById('contract-type').value === 'custom' 
+                    ? document.getElementById('custom-type').value 
+                    : document.getElementById('contract-type').value,
+                position: document.getElementById('position').value === 'custom' 
+                    ? document.getElementById('custom-position').value 
+                    : document.getElementById('position').value,
+                background: document.getElementById('background').value,
+                parties: document.getElementById('parties').value,
+                business: document.getElementById('business').value,
+                other: document.getElementById('other').value
+            };
+            
+            console.log('表单数据：', formData);
+            alert('表单验证通过！后续将集成AI生成功能。');
+        });
+
+        // 设置相关功能
+        const settingsBtn = document.getElementById('settings-btn');
+        const settingsModal = document.getElementById('settings-modal');
+        const apiKeyInput = document.getElementById('api-key-input');
+        const modelSelect = document.getElementById('model-select');
+        const saveSettingsBtn = document.getElementById('save-settings-btn');
+        const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
+
+        // 设置模态框显示/隐藏
+        function toggleSettingsModal(show) {
+            settingsModal.style.display = show ? 'flex' : 'none';
+            if (show) {
+                apiKeyInput.value = localStorage.getItem('geminiApiKey') || '';
+                modelSelect.value = localStorage.getItem('geminiModel') || 'gemini-2.5-pro';
+            }
+        }
+
+        // 保存设置
+        async function saveSettings() {
+            const apiKey = apiKeyInput.value.trim();
+            const selectedModel = modelSelect.value;
+            if (apiKey) {
+                localStorage.setItem('geminiApiKey', apiKey);
+                localStorage.setItem('geminiModel', selectedModel);
+                
+                // 测试API连接
+                try {
+                    console.log('测试API连接:', {
+                        model: selectedModel,
+                        key: apiKey.substring(0, 10) + '...'
+                    });
+                    
+                    const testUrl = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}?key=${apiKey}`;
+                    const response = await fetch(testUrl);
+                    
+                    console.log('API测试响应:', response.status, response.statusText);
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('模型信息:', data);
+                        alert('设置已保存，模型连接正常！');
+                    } else {
+                        const errorText = await response.text();
+                        console.error('API测试失败:', errorText);
+                        alert(`设置已保存，但模型测试失败: ${response.status} - ${response.statusText}`);
+                    }
+                } catch (error) {
+                    console.error('API测试异常:', error);
+                    alert('设置已保存，但无法验证模型可用性。');
+                }
+                
+                toggleSettingsModal(false);
+            } else {
+                alert('请输入有效的API密钥。');
+            }
+        }
+
+        // 设置按钮事件监听
+        settingsBtn.addEventListener('click', () => toggleSettingsModal(true));
+        cancelSettingsBtn.addEventListener('click', () => toggleSettingsModal(false));
+        saveSettingsBtn.addEventListener('click', saveSettings);
+
+        // 与父窗口通信
         window.addEventListener('message', (event) => {
             if (event.data.type === 'getStatus') {
                 window.parent.postMessage({
@@ -122,4 +822,4 @@
         });
     </script>
 </body>
-</html> 
+</html>
