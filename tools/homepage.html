@@ -3,157 +3,1168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>首页</title>
+    <title>AI 对话</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        /* 整体缩放效果 - 模拟浏览器90%缩放 */
+        :root {
+            --primary-color: #5A67D8;
+            --primary-hover: #4C51BF;
+            --secondary-color: #F7FAFC;
+            --border-color: #E2E8F0;
+            --text-color: #2D3748;
+            --text-secondary: #718096;
+            --font-sans: 'Inter', 'Noto Sans SC', sans-serif;
+            --history-panel-width: 173px;
+        }
         body {
-            transform: scale(0.9);
-            transform-origin: top left;
-            width: 111.11%; /* 100% / 0.9 = 111.11% 来补偿缩放 */
-            height: 111.11%;
-            overflow-x: hidden;
+            font-family: var(--font-sans);
+            background-color: #f8f9fa;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+        .chat-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        /* --- History Panel --- */
+        .history-panel {
+            width: var(--history-panel-width);
+            background-color: var(--secondary-color);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+        .history-header {
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .new-chat-btn {
+            width: 100%;
+            padding: 6px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .new-chat-btn:hover { background-color: var(--primary-hover); }
+        .history-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-top: 10px;
+            width: 100%;
+        }
+        .history-item {
+            padding: 6px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            position: relative;
+            font-size: 0.85em;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .history-item:hover { background-color: #E2E8F0; }
+        .history-item.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .delete-chat-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: none;
+            color: var(--text-secondary);
+            z-index: 1;
+        }
+        .history-item:hover .delete-chat-btn { display: inline-block; }
+        .history-item.active .delete-chat-btn { color: white; }
+        .delete-chat-btn:hover { color: #E53E3E; }
+
+        /* --- Chat Panel --- */
+        .chat-panel {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            height: 100%;
+            min-width: 0;
+        }
+        .chat-header {
+            padding: 0 16px;
+            height: 60px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .chat-header h2 {
+            margin: 0;
+            font-size: 1.1em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+            transition: color 0.2s;
         }
         
-        /* 首页样式 */
-        .homepage {
-            height: 100%;
-            padding: 40px;
-            overflow-y: auto;
+        .chat-header h2:hover {
+            color: var(--primary-color);
+        }
+        
+        .chat-header h2.editing {
             background: white;
-            color: #2D3748;
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+            padding: 2px 6px;
+            outline: none;
+            font-size: 1.1em;
+            font-family: inherit;
+        }
+        
+        .model-indicator {
+            font-size: 0.8em;
+            color: var(--text-secondary);
+            margin-top: 3px;
+        }
+        .settings-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9em;
+        }
+        .settings-btn:hover {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
         }
 
-        .homepage-content {
-            max-width: 800px;
-            margin: 0 auto;
+        /* --- Message Area --- */
+        .message-area {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 12px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .message {
+            display: flex;
+            margin-bottom: 12px;
+            max-width: 85%;
+        }
+        .message.user {
+            margin-left: auto;
+            flex-direction: row-reverse;
+        }
+        .message .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+            flex-shrink: 0;
+        }
+        .message.user .avatar { background-color: var(--primary-color); color: white; }
+        .message .content {
+            background-color: var(--secondary-color);
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin: 0 8px;
+            max-width: 80%;
+            font-size: 0.85em;
+            line-height: 1.4;
+        }
+        .message.user .content { background-color: var(--primary-color); color: white; }
+        .message .content p:last-child { margin-bottom: 0; }
+        
+        /* 文件上传样式 */
+        .file-upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 6px;
+            padding: 16px;
             text-align: center;
-        }
-
-        .welcome-section {
-            margin-bottom: 60px;
-        }
-
-        .welcome-title {
-            font-size: 2.5em;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: #5A67D8;
-        }
-
-        .welcome-subtitle {
-            font-size: 1.2em;
-            color: #718096;
-            margin-bottom: 40px;
-        }
-
-        .tools-overview {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-            margin-bottom: 50px;
-        }
-
-        .tool-overview-card {
-            background: #F7FAFC;
-            border: 1px solid #E2E8F0;
-            border-radius: 12px;
-            padding: 30px;
-            text-align: center;
+            margin: 8px 0;
+            background: var(--secondary-color);
             transition: all 0.2s ease;
+        }
+        
+        .file-upload-area:hover {
+            border-color: var(--primary-color);
+            background: rgba(90, 103, 216, 0.05);
+        }
+        
+        .file-upload-area.dragover {
+            border-color: var(--primary-color);
+            background: rgba(90, 103, 216, 0.1);
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .upload-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: background-color 0.2s;
+        }
+        
+        .upload-btn:hover {
+            background: var(--primary-hover);
+        }
+        
+        .file-preview {
+            margin-top: 8px;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px;
+            background: var(--secondary-color);
+            border-radius: 3px;
+            margin-bottom: 4px;
+        }
+        
+        .file-item img {
+            width: 32px;
+            height: 32px;
+            object-fit: cover;
+            border-radius: 3px;
+        }
+        
+        .file-info {
+            flex: 1;
+            font-size: 0.8em;
+        }
+        
+        .file-name {
+            font-weight: 500;
+            margin-bottom: 1px;
+            font-size: 0.85em;
+        }
+        
+        .file-size {
+            color: var(--text-secondary);
+            font-size: 0.75em;
+        }
+        
+        .remove-file {
+            color: #E53E3E;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .remove-file:hover {
+            background: rgba(229, 62, 62, 0.1);
+        }
+        .message.thinking .content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dot-flashing {
+            position: relative; width: 10px; height: 10px;
+            border-radius: 5px; background-color: var(--text-secondary);
+            color: var(--text-secondary); animation: dotFlashing 1s infinite linear alternate;
+            animation-delay: .5s;
+        }
+        .dot-flashing::before, .dot-flashing::after {
+            content: ''; display: inline-block; position: absolute; top: 0;
+        }
+        .dot-flashing::before {
+            left: -15px; width: 10px; height: 10px; border-radius: 5px;
+            background-color: var(--text-secondary); color: var(--text-secondary);
+            animation: dotFlashing 1s infinite alternate; animation-delay: 0s;
+        }
+        .dot-flashing::after {
+            left: 15px; width: 10px; height: 10px; border-radius: 5px;
+            background-color: var(--text-secondary); color: var(--text-secondary);
+            animation: dotFlashing 1s infinite alternate; animation-delay: 1s;
+        }
+        @keyframes dotFlashing {
+            0% { background-color: var(--text-secondary); }
+            50%, 100% { background-color: #E2E8F0; }
+        }
+
+        /* --- Input Area --- */
+        .input-area {
+            padding: 12px;
+            border-top: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        .message-form {
+            display: flex;
+            gap: 8px;
+        }
+        #message-input {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.85em;
+            resize: none;
+            line-height: 1.3;
+        }
+        #message-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.2);
+        }
+        .send-btn {
+            padding: 8px 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 0.8em;
+        }
+        .send-btn:hover { background-color: var(--primary-hover); }
+        .send-btn:disabled { background-color: #BDBDBD; cursor: not-allowed; }
+
+        /* --- Settings Modal --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+        .modal {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+        }
+        .modal h3 { margin-top: 0; }
+        .modal .form-group { margin-bottom: 20px; }
+        .modal label { display: block; margin-bottom: 8px; font-weight: 500; }
+        .modal input, .modal select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        
+        .modal select {
+            background-color: white;
             cursor: pointer;
         }
-
-        .tool-overview-card:hover {
-            border-color: #5A67D8;
-            box-shadow: 0 4px 12px rgba(90, 103, 216, 0.15);
-            transform: translateY(-2px);
+        
+        .modal select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.1);
         }
-
-        .tool-overview-icon {
-            font-size: 2.5em;
-            color: #5A67D8;
-            margin-bottom: 20px;
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
         }
-
-        .tool-overview-title {
-            font-size: 1.3em;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: #2D3748;
+        .modal-actions button {
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
         }
-
-        .tool-overview-desc {
-            color: #718096;
-            line-height: 1.5;
-        }
-
-        .welcome-message {
-            background: #F7FAFC;
-            border: 1px solid #E2E8F0;
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 30px;
-        }
-
-        .welcome-message h3 {
-            color: #5A67D8;
-            margin-bottom: 15px;
-            font-size: 1.3em;
-        }
-
-        .welcome-message p {
-            color: #718096;
-            line-height: 1.6;
+        .save-settings-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
         }
     </style>
 </head>
 <body>
-    <div class="homepage">
-        <div class="homepage-content">
-            <!-- 欢迎区域 -->
-            <div class="welcome-section">
-                <h1 class="welcome-title">欢迎使用法律AI工作台</h1>
-                <p class="welcome-subtitle">智能化的法律文书处理与合同审查平台</p>
-            </div>
 
-            <!-- 工具概览 -->
-            <div class="tools-overview">
-                <div class="tool-overview-card" data-tool="contract-review">
-                    <div class="tool-overview-icon">
-                        <i class="fa-solid fa-file-contract"></i>
-                    </div>
-                    <h3 class="tool-overview-title">合同审核</h3>
-                    <p class="tool-overview-desc">智能审核合同条款，识别风险点</p>
-                </div>
-                <div class="tool-overview-card" data-tool="document-gen">
-                    <div class="tool-overview-icon">
-                        <i class="fa-solid fa-file-pen"></i>
-                    </div>
-                    <h3 class="tool-overview-title">合同生成</h3>
-                    <p class="tool-overview-desc">智能生成各类法律文书</p>
-                </div>
+    <div class="chat-container">
+        <!-- Conversation History Panel -->
+        <aside class="history-panel">
+            <div class="history-header">
+                <button class="new-chat-btn" id="new-chat-btn"><i class="fa-solid fa-plus"></i> 新建对话</button>
             </div>
+            <div class="history-list" id="history-list"></div>
+        </aside>
 
-            <!-- 欢迎信息 -->
-            <div class="welcome-message">
-                <h3>开始使用</h3>
-                <p>选择左侧导航栏中的工具开始使用，或直接点击上方的工具卡片快速进入对应功能。</p>
+        <!-- Main Chat Panel -->
+        <main class="chat-panel">
+            <header class="chat-header">
+                <div>
+                    <h2 id="chat-title">新建对话</h2>
+                    <div class="model-indicator" id="model-indicator">使用模型: Gemini 2.5 Pro | 点击标题可编辑</div>
+                </div>
+                <button class="settings-btn" id="settings-btn"><i class="fa-solid fa-gear"></i> 设置</button>
+            </header>
+            <div class="message-area" id="message-area">
+                <!-- Messages will be appended here -->
+            </div>
+            <div class="input-area">
+                <!-- 文件上传区域 -->
+                <div class="file-upload-area" id="file-upload-area" style="display: none;">
+                    <input type="file" id="file-input" class="file-input" multiple accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt">
+                    <div class="upload-content">
+                        <i class="fa-solid fa-cloud-upload-alt" style="font-size: 2em; color: var(--text-secondary); margin-bottom: 10px;"></i>
+                        <p style="margin: 0; color: var(--text-secondary);">拖拽文件到此处或点击上传</p>
+                        <p style="margin: 5px 0; font-size: 0.8em; color: var(--text-secondary);">
+                            支持：图片、文本、PDF、文档等文件
+                        </p>
+                        <button type="button" class="upload-btn" onclick="document.getElementById('file-input').click()">
+                            <i class="fa-solid fa-plus"></i> 选择文件
+                        </button>
+                    </div>
+                    <div class="file-preview" id="file-preview" style="display: none;"></div>
+                </div>
+                
+                <form class="message-form" id="message-form">
+                    <textarea id="message-input" placeholder="输入您的问题..." rows="1"></textarea>
+                    <button type="button" class="send-btn" id="attach-btn" style="margin-right: 8px;">
+                        <i class="fa-solid fa-paperclip"></i>
+                    </button>
+                    <button type="submit" class="send-btn" id="send-btn">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal">
+            <h3>设置</h3>
+            <div class="form-group">
+                <label for="api-key-input">Gemini API 密钥</label>
+                <input type="password" id="api-key-input" placeholder="请输入您的 Gemini API Key">
+            </div>
+            <div class="form-group">
+                <label for="model-select">选择模型</label>
+                <select id="model-select">
+                    <option value="gemini-2.5-pro">Gemini 2.5 Pro (最新，最强大)</option>
+                    <option value="gemini-2.5-flash">Gemini 2.5 Flash (最新，性价比高)</option>
+                    <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite (最新，成本效益)</option>
+                    <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash</option>
+                    <option value="gemini-2.0-pro-exp">Gemini 2.0 Pro</option>
+                    <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                    <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                    <option value="gemini-1.0-pro">Gemini 1.0 Pro</option>
+                </select>
+                <small style="color: var(--text-secondary); font-size: 0.9em; margin-top: 5px; display: block;">
+                    推荐使用Gemini 2.5系列，这是Google最新最强大的模型，支持思考功能和多模态理解
+                </small>
+            </div>
+            <div class="modal-actions">
+                <button id="cancel-settings-btn">取消</button>
+                <button class="save-settings-btn" id="save-settings-btn">保存</button>
             </div>
         </div>
     </div>
 
     <script>
-        // 工具卡片点击事件
-        document.querySelectorAll('.tool-overview-card[data-tool]').forEach(card => {
-            card.addEventListener('click', (e) => {
-                const toolId = e.currentTarget.dataset.tool;
-                // 通知父窗口切换工具
-                if (window.parent && window.parent.toolManager) {
-                    window.parent.toolManager.switchTool(toolId);
+    document.addEventListener('DOMContentLoaded', () => {
+        const DB_NAME = 'GeminiChatDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'conversations';
+        let db;
+
+        // --- DOM Elements ---
+        const historyList = document.getElementById('history-list');
+        const newChatBtn = document.getElementById('new-chat-btn');
+        const chatTitle = document.getElementById('chat-title');
+        const messageArea = document.getElementById('message-area');
+        const messageForm = document.getElementById('message-form');
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const settingsBtn = document.getElementById('settings-btn');
+        const settingsModal = document.getElementById('settings-modal');
+        const apiKeyInput = document.getElementById('api-key-input');
+        const modelSelect = document.getElementById('model-select');
+        const saveSettingsBtn = document.getElementById('save-settings-btn');
+        const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
+        const modelIndicator = document.getElementById('model-indicator');
+        const attachBtn = document.getElementById('attach-btn');
+        const fileUploadArea = document.getElementById('file-upload-area');
+        const fileInput = document.getElementById('file-input');
+        const filePreview = document.getElementById('file-preview');
+
+        // --- State ---
+        let conversations = [];
+        let currentConversationId = null;
+        let isThinking = false;
+        let attachedFiles = [];
+
+        // --- Database Functions ---
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onerror = () => reject("数据库打开失败");
+                request.onsuccess = (event) => {
+                    db = event.target.result;
+                    resolve();
+                };
+                request.onupgradeneeded = (event) => {
+                    const store = event.target.result.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                    store.createIndex('timestamp', 'timestamp', { unique: false });
+                };
+            });
+        }
+
+        async function getConversations() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(STORE_NAME, 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.getAll();
+                request.onsuccess = () => resolve(request.result.sort((a, b) => b.timestamp - a.timestamp));
+                request.onerror = () => reject("读取对话失败");
+            });
+        }
+
+        async function saveConversation(conversation) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(STORE_NAME, 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.put(conversation);
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject("保存对话失败");
+            });
+        }
+
+        async function deleteConversation(id) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(STORE_NAME, 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.delete(id);
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject("删除对话失败");
+            });
+        }
+
+        // --- UI Functions ---
+        function renderHistory() {
+            historyList.innerHTML = '';
+            if (conversations.length === 0) {
+                historyList.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">暂无对话</p>';
+                return;
+            }
+            conversations.forEach(conv => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.textContent = conv.title;
+                item.dataset.id = conv.id;
+                if (conv.id === currentConversationId) {
+                    item.classList.add('active');
+                }
+                
+                const deleteBtn = document.createElement('i');
+                deleteBtn.className = 'fa-solid fa-trash-alt delete-chat-btn';
+                deleteBtn.title = '删除对话';
+                deleteBtn.onclick = async (e) => {
+                    e.stopPropagation();
+                    if (confirm(`确定要删除对话 "${conv.title}" 吗？`)) {
+                        await deleteConversation(conv.id);
+                        await loadAndRenderHistory();
+                        if (currentConversationId === conv.id) {
+                            startNewChat();
+                        }
+                    }
+                };
+                item.appendChild(deleteBtn);
+
+                item.onclick = () => {
+                    loadConversation(conv.id);
+                };
+                historyList.appendChild(item);
+            });
+        }
+
+        function renderMessages() {
+            messageArea.innerHTML = '';
+            const conversation = conversations.find(c => c.id === currentConversationId);
+            if (!conversation) return;
+
+            conversation.messages.forEach(msg => {
+                appendMessage(msg.role, msg.parts[0].text);
+            });
+            scrollToBottom();
+        }
+
+        function appendMessage(role, text) {
+            const messageEl = document.createElement('div');
+            messageEl.className = `message ${role}`;
+            const avatarIcon = role === 'user' ? 'fa-user' : 'fa-robot';
+            const parsedText = marked.parse(text);
+
+            messageEl.innerHTML = `
+                <div class="avatar"><i class="fa-solid ${avatarIcon}"></i></div>
+                <div class="content">${parsedText}</div>
+            `;
+            messageArea.appendChild(messageEl);
+        }
+        
+        function showThinkingIndicator() {
+            if (isThinking) return;
+            isThinking = true;
+            const messageEl = document.createElement('div');
+            messageEl.className = 'message model thinking';
+            messageEl.id = 'thinking-indicator';
+            messageEl.innerHTML = `
+                <div class="avatar"><i class="fa-solid fa-robot"></i></div>
+                <div class="content"><div class="dot-flashing"></div></div>
+            `;
+            messageArea.appendChild(messageEl);
+            scrollToBottom();
+        }
+
+        function removeThinkingIndicator() {
+            const indicator = document.getElementById('thinking-indicator');
+            if (indicator) indicator.remove();
+            isThinking = false;
+        }
+
+        function scrollToBottom() {
+            messageArea.scrollTop = messageArea.scrollHeight;
+        }
+
+        function updateChatTitle() {
+            const conversation = conversations.find(c => c.id === currentConversationId);
+            chatTitle.textContent = conversation ? conversation.title : '新建对话';
+        }
+        
+        function enableTitleEdit() {
+            const conversation = conversations.find(c => c.id === currentConversationId);
+            if (!conversation) return;
+            
+            chatTitle.contentEditable = true;
+            chatTitle.classList.add('editing');
+            chatTitle.focus();
+            
+            // 选择所有文本
+            const range = document.createRange();
+            range.selectNodeContents(chatTitle);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+        
+        function saveTitleEdit() {
+            const conversation = conversations.find(c => c.id === currentConversationId);
+            if (!conversation) return;
+            
+            const newTitle = chatTitle.textContent.trim();
+            if (newTitle && newTitle !== conversation.title) {
+                conversation.title = newTitle;
+                saveConversation(conversation);
+                loadAndRenderHistory();
+            }
+            
+            chatTitle.contentEditable = false;
+            chatTitle.classList.remove('editing');
+        }
+        
+        function updateModelIndicator() {
+            const selectedModel = localStorage.getItem('geminiModel') || 'gemini-2.5-pro';
+            const modelNames = {
+                'gemini-2.5-pro': 'Gemini 2.5 Pro',
+                'gemini-2.5-flash': 'Gemini 2.5 Flash',
+                'gemini-2.5-flash-lite': 'Gemini 2.5 Flash-Lite',
+                'gemini-2.0-flash-exp': 'Gemini 2.0 Flash',
+                'gemini-2.0-pro-exp': 'Gemini 2.0 Pro',
+                'gemini-1.5-flash': 'Gemini 1.5 Flash',
+                'gemini-1.5-pro': 'Gemini 1.5 Pro',
+                'gemini-1.0-pro': 'Gemini 1.0 Pro'
+            };
+            modelIndicator.textContent = `使用模型: ${modelNames[selectedModel] || selectedModel}`;
+        }
+
+        // --- Chat Logic ---
+        function startNewChat() {
+            currentConversationId = null;
+            messageArea.innerHTML = '';
+            chatTitle.textContent = '新建对话';
+            messageInput.value = '';
+            renderHistory();
+        }
+
+        async function loadConversation(id) {
+            currentConversationId = id;
+            renderMessages();
+            updateChatTitle();
+            renderHistory();
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const userInput = messageInput.value.trim();
+            if (!userInput && attachedFiles.length === 0 || isThinking) return;
+
+            const apiKey = localStorage.getItem('geminiApiKey');
+            if (!apiKey) {
+                alert('请先在设置中配置您的Gemini API密钥。');
+                return;
+            }
+
+            let conversation;
+            if (!currentConversationId) {
+                currentConversationId = Date.now().toString();
+                conversation = {
+                    id: currentConversationId,
+                    title: userInput.substring(0, 20) + (userInput.length > 20 ? '...' : ''),
+                    messages: [],
+                    timestamp: Date.now()
+                };
+                conversations.push(conversation);
+            } else {
+                conversation = conversations.find(c => c.id === currentConversationId);
+            }
+
+            // 构建消息内容
+            const parts = [];
+            if (userInput) {
+                parts.push({ text: userInput });
+            }
+            
+            // 添加文件
+            for (const file of attachedFiles) {
+                if (file.type.startsWith('image/')) {
+                    const base64 = await fileToBase64(file);
+                    parts.push({
+                        inlineData: {
+                            mimeType: file.type,
+                            data: base64.split(',')[1]
+                        }
+                    });
+                } else if (file.type === 'text/plain' || file.type.includes('document')) {
+                    // 读取文本文件内容
+                    try {
+                        const textContent = await readTextFile(file);
+                        if (textContent) {
+                            parts.push({ text: `文件"${file.name}"的内容：\n${textContent}` });
+                        }
+                    } catch (error) {
+                        parts.push({ text: `无法读取文件"${file.name}"的内容：${error.message}` });
+                    }
+                } else if (file.type.includes('pdf')) {
+                    // PDF文件处理
+                    try {
+                        const pdfContent = await readPDFFile(file);
+                        parts.push({ text: `PDF文件"${file.name}"：${pdfContent}` });
+                    } catch (error) {
+                        parts.push({ text: `无法读取PDF文件"${file.name}"：${error.message}` });
+                    }
+                } else {
+                    // 其他文件类型
+                    parts.push({ text: `已上传文件：${file.name} (${formatFileSize(file.size)})` });
+                }
+            }
+
+            const userMessage = { role: 'user', parts };
+            conversation.messages.push(userMessage);
+            
+            // 显示用户消息
+            appendMessageWithFiles(userMessage.role, userInput, attachedFiles);
+            messageInput.value = '';
+            attachedFiles = [];
+            updateFilePreview();
+            fileUploadArea.style.display = 'none';
+            adjustTextareaHeight();
+            scrollToBottom();
+            showThinkingIndicator();
+            
+            try {
+                const modelResponse = await callGeminiAPI(conversation.messages);
+                const modelMessage = { role: 'model', parts: [{ text: modelResponse }] };
+                conversation.messages.push(modelMessage);
+                
+                removeThinkingIndicator();
+                appendMessage(modelMessage.role, modelMessage.parts[0].text);
+                scrollToBottom();
+
+                conversation.timestamp = Date.now();
+                await saveConversation(conversation);
+                await loadAndRenderHistory();
+
+            } catch (error) {
+                removeThinkingIndicator();
+                let errorMessage = error.message;
+                
+                // 提供更友好的错误信息
+                if (errorMessage.includes('API key')) {
+                    errorMessage = 'API密钥无效，请检查您的密钥是否正确。';
+                } else if (errorMessage.includes('not found')) {
+                    errorMessage = '模型不可用，请尝试选择其他模型或检查API密钥。';
+                } else if (errorMessage.includes('quota')) {
+                    errorMessage = 'API配额已用完，请稍后再试。';
+                } else if (errorMessage.includes('network')) {
+                    errorMessage = '网络连接失败，请检查网络连接。';
+                } else if (errorMessage.includes('2.5')) {
+                    errorMessage = 'Gemini 2.5模型可能需要特殊访问权限，请尝试使用2.0或1.5版本或联系Google获取访问权限。';
+                } else if (errorMessage.includes('2.0')) {
+                    errorMessage = 'Gemini 2.0模型可能需要特殊访问权限，请尝试使用1.5版本或联系Google获取访问权限。';
+                }
+                
+                appendMessage('model', `❌ 发生错误: ${errorMessage}`);
+                scrollToBottom();
+            }
+        }
+
+        async function callGeminiAPI(messages) {
+            const apiKey = localStorage.getItem('geminiApiKey');
+            const selectedModel = localStorage.getItem('geminiModel') || 'gemini-2.5-pro';
+            // 使用选择的Gemini模型
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`;
+            
+            // Gemini API expects alternating user/model roles.
+            const contents = messages.map(msg => ({
+                role: msg.role,
+                parts: msg.parts
+            }));
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || 'API请求失败');
+            }
+
+            const data = await response.json();
+            return data.candidates[0].content.parts[0].text;
+        }
+
+        // --- Settings ---
+        function toggleSettingsModal(show) {
+            settingsModal.style.display = show ? 'flex' : 'none';
+            if (show) {
+                apiKeyInput.value = localStorage.getItem('geminiApiKey') || '';
+                modelSelect.value = localStorage.getItem('geminiModel') || 'gemini-2.5-pro';
+            }
+        }
+
+        async function saveSettings() {
+            const apiKey = apiKeyInput.value.trim();
+            const selectedModel = modelSelect.value;
+            if (apiKey) {
+                localStorage.setItem('geminiApiKey', apiKey);
+                localStorage.setItem('geminiModel', selectedModel);
+                
+                // 测试API连接
+                try {
+                    const testUrl = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}?key=${apiKey}`;
+                    const response = await fetch(testUrl);
+                    if (response.ok) {
+                        alert('设置已保存，模型连接正常！');
+                    } else {
+                        alert('设置已保存，但模型可能不可用，请尝试其他模型。');
+                    }
+                } catch (error) {
+                    alert('设置已保存，但无法验证模型可用性。');
+                }
+                
+                toggleSettingsModal(false);
+                updateModelIndicator();
+            } else {
+                alert('请输入有效的API密钥。');
+            }
+        }
+
+        // --- Initialization and Event Listeners ---
+        async function loadAndRenderHistory() {
+            conversations = await getConversations();
+            renderHistory();
+        }
+
+        function adjustTextareaHeight() {
+            messageInput.style.height = 'auto';
+            messageInput.style.height = (messageInput.scrollHeight) + 'px';
+        }
+
+        messageForm.addEventListener('submit', handleFormSubmit);
+        newChatBtn.addEventListener('click', startNewChat);
+        settingsBtn.addEventListener('click', () => toggleSettingsModal(true));
+        cancelSettingsBtn.addEventListener('click', () => toggleSettingsModal(false));
+        saveSettingsBtn.addEventListener('click', saveSettings);
+        messageInput.addEventListener('input', adjustTextareaHeight);
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                messageForm.requestSubmit();
+            }
+        });
+
+        // 标题编辑功能
+        chatTitle.addEventListener('click', enableTitleEdit);
+        chatTitle.addEventListener('blur', saveTitleEdit);
+        chatTitle.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                saveTitleEdit();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                chatTitle.contentEditable = false;
+                chatTitle.classList.remove('editing');
+                updateChatTitle();
+            }
+        });
+
+        // 文件上传功能
+        attachBtn.addEventListener('click', () => {
+            fileUploadArea.style.display = fileUploadArea.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // 文件选择处理
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // 拖拽上传
+        fileUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.add('dragover');
+        });
+
+        fileUploadArea.addEventListener('dragleave', () => {
+            fileUploadArea.classList.remove('dragover');
+        });
+
+        fileUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files);
+            handleFiles(files);
+        });
+
+        function handleFileSelect(e) {
+            const files = Array.from(e.target.files);
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            files.forEach(file => {
+                if (file.size > 10 * 1024 * 1024) { // 10MB限制
+                    alert(`文件 ${file.name} 太大，请选择小于10MB的文件。`);
+                    return;
+                }
+                
+                if (!attachedFiles.find(f => f.name === file.name)) {
+                    attachedFiles.push(file);
+                    displayFilePreview(file);
                 }
             });
-        });
+        }
+
+        function displayFilePreview(file) {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            
+            let preview = '';
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preview = `<img src="${e.target.result}" alt="${file.name}">`;
+                    fileItem.innerHTML = `
+                        ${preview}
+                        <div class="file-info">
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">${formatFileSize(file.size)}</div>
+                        </div>
+                        <i class="fa-solid fa-times remove-file" onclick="removeFile('${file.name}')"></i>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                const icon = getFileIcon(file.type);
+                fileItem.innerHTML = `
+                    <i class="${icon}" style="font-size: 1.5em; color: var(--text-secondary);"></i>
+                    <div class="file-info">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">${formatFileSize(file.size)}</div>
+                    </div>
+                    <i class="fa-solid fa-times remove-file" onclick="removeFile('${file.name}')"></i>
+                `;
+            }
+            
+            filePreview.appendChild(fileItem);
+            filePreview.style.display = 'block';
+        }
+
+        function removeFile(fileName) {
+            attachedFiles = attachedFiles.filter(f => f.name !== fileName);
+            updateFilePreview();
+        }
+
+        function updateFilePreview() {
+            filePreview.innerHTML = '';
+            attachedFiles.forEach(file => {
+                displayFilePreview(file);
+            });
+            if (attachedFiles.length === 0) {
+                filePreview.style.display = 'none';
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function getFileIcon(mimeType) {
+            if (mimeType.startsWith('image/')) return 'fa-solid fa-image';
+            if (mimeType.startsWith('video/')) return 'fa-solid fa-video';
+            if (mimeType.startsWith('audio/')) return 'fa-solid fa-music';
+            if (mimeType.includes('pdf')) return 'fa-solid fa-file-pdf';
+            if (mimeType.includes('word') || mimeType.includes('document')) return 'fa-solid fa-file-word';
+            if (mimeType.includes('text')) return 'fa-solid fa-file-text';
+            return 'fa-solid fa-file';
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        function readTextFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsText(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        function readPDFFile(file) {
+            return new Promise((resolve, reject) => {
+                // 简单的PDF文本提取（需要PDF.js库）
+                const reader = new FileReader();
+                reader.readAsArrayBuffer(file);
+                reader.onload = async () => {
+                    try {
+                        // 这里可以集成PDF.js来提取PDF文本
+                        // 暂时返回提示信息
+                        resolve("PDF文件内容提取功能正在开发中...");
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        function appendMessageWithFiles(role, text, files) {
+            const messageEl = document.createElement('div');
+            messageEl.className = `message ${role}`;
+            const avatarIcon = role === 'user' ? 'fa-user' : 'fa-robot';
+            
+            let content = '';
+            if (text) {
+                content += `<div>${marked.parse(text)}</div>`;
+            }
+            
+            if (files && files.length > 0) {
+                content += '<div style="margin-top: 10px;">';
+                let hasImage = false;
+                
+                files.forEach(file => {
+                    if (file.type.startsWith('image/')) {
+                        hasImage = true;
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            content += `<img src="${e.target.result}" style="max-width: 180px; max-height: 180px; border-radius: 6px; margin: 3px;" alt="${file.name}">`;
+                            messageEl.innerHTML = `
+                                <div class="avatar"><i class="fa-solid ${avatarIcon}"></i></div>
+                                <div class="content">${content}</div>
+                            `;
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        content += `<div style="display: flex; align-items: center; gap: 6px; margin: 3px 0; padding: 6px; background: rgba(0,0,0,0.05); border-radius: 3px;">
+                            <i class="${getFileIcon(file.type)}" style="color: var(--text-secondary); font-size: 0.8em;"></i>
+                            <span style="font-size: 0.8em; font-weight: 500;">${file.name}</span>
+                            <span style="font-size: 0.7em; color: var(--text-secondary);">(${formatFileSize(file.size)})</span>
+                        </div>`;
+                    }
+                });
+                content += '</div>';
+                
+                if (!hasImage) {
+                    messageEl.innerHTML = `
+                        <div class="avatar"><i class="fa-solid ${avatarIcon}"></i></div>
+                        <div class="content">${content}</div>
+                    `;
+                }
+            }
+            
+            if (!content.includes('<img')) {
+                messageEl.innerHTML = `
+                    <div class="avatar"><i class="fa-solid ${avatarIcon}"></i></div>
+                    <div class="content">${content}</div>
+                `;
+            }
+            
+            messageArea.appendChild(messageEl);
+        }
+
+        async function main() {
+            await initDB();
+            await loadAndRenderHistory();
+            updateModelIndicator();
+            if (conversations.length > 0) {
+                loadConversation(conversations[0].id);
+            } else {
+                startNewChat();
+            }
+        }
+
+        main();
+    });
     </script>
 </body>
-</html> 
+</html>

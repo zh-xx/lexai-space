@@ -545,6 +545,16 @@
             </div>
             
             <nav class="tool-nav">
+                <div class="tool-item" data-tool="ai-chat">
+                    <div class="tool-icon">
+                        <i class="fa-solid fa-comments"></i>
+                    </div>
+                    <div class="tool-info">
+                        <div class="tool-name">AI 对话</div>
+                        <div class="tool-desc">与AI进行智能对话</div>
+                    </div>
+                    <div class="tool-status available"></div>
+                </div>
                 <div class="tool-item" data-tool="contract-review">
                     <div class="tool-icon">
                         <i class="fa-solid fa-file-contract"></i>
@@ -587,8 +597,15 @@
     <script>
         class ToolManager {
             constructor() {
-                this.currentTool = null; // 初始化为null，表示显示首页
+                this.currentTool = null;
                 this.tools = {
+                    'ai-chat': {
+                        name: 'AI 对话',
+                        url: 'tools/homepage.html',
+                        icon: 'fa-comments',
+                        description: '与AI进行智能对话',
+                        status: 'available'
+                    },
                     'contract-review': {
                         name: '合同审核',
                         url: 'tools/contract-review.html',
@@ -604,28 +621,18 @@
                         status: 'available'
                     }
                 };
-                
-                // 内部使用的首页配置
-                this.homepageConfig = {
-                    name: '法律AI工作台',
-                    url: 'tools/homepage.html',
-                    icon: 'fa-home',
-                    description: '返回首页',
-                    status: 'available'
-                };
-                
                 this.init();
             }
             
             init() {
                 this.bindEvents();
-                this.switchTool('homepage'); // 默认显示首页
+                this.switchTool('ai-chat'); // 默认显示AI对话
             }
             
             bindEvents() {
                 // 顶部logo点击事件 - 返回首页
                 document.querySelector('.header-left .logo').addEventListener('click', () => {
-                    this.switchTool('homepage');
+                    this.switchTool('ai-chat');
                 });
                 
                 // 工具切换事件
@@ -666,23 +673,6 @@
             }
             
             switchTool(toolId) {
-                if (toolId === 'homepage') {
-                    // 处理首页
-                    this.showLoading();
-                    this.clearSidebarState();
-                    
-                    const iframe = document.getElementById('tool-frame');
-                    iframe.style.display = 'block';
-                    iframe.src = this.homepageConfig.url;
-                    
-                    this.currentTool = 'homepage';
-                    
-                    iframe.onload = () => {
-                        this.hideLoading();
-                    };
-                    return;
-                }
-                
                 if (!this.tools[toolId]) return;
                 
                 // 显示加载状态
@@ -771,4 +761,4 @@
         });
     </script>
 </body>
-</html> 
+</html>
