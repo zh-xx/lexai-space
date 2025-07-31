@@ -359,6 +359,146 @@
             color: var(--primary-color);
             border-color: var(--primary-color);
         }
+
+        /* 优化结果模态框样式 */
+        .optimization-modal {
+            max-width: 900px;
+            width: 90%;
+            max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .optimization-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .optimization-header h3 {
+            margin: 0;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.2em;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 5px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: var(--secondary-color);
+            color: var(--text-primary);
+        }
+
+        .optimization-content {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .comparison-section {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .original-section,
+        .optimized-section {
+            flex: 1;
+        }
+
+        .original-section h4,
+        .optimized-section h4 {
+            margin: 0 0 10px 0;
+            font-size: 1em;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .original-section h4 {
+            color: #666;
+        }
+
+        .optimized-section h4 {
+            color: var(--primary-color);
+        }
+
+        .arrow-section {
+            display: flex;
+            align-items: center;
+            padding: 20px 10px;
+            color: var(--primary-color);
+            font-size: 1.2em;
+        }
+
+        .content-box {
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 0.9em;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .original-content {
+            background: #f8f9fa;
+            border-color: #dee2e6;
+        }
+
+        .optimized-content {
+            background: #f0f8ff;
+            border-color: var(--primary-color);
+        }
+
+        .optimization-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .optimization-actions .btn {
+            padding: 10px 20px;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-section {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .arrow-section {
+                transform: rotate(90deg);
+                padding: 10px 0;
+            }
+
+            .optimization-modal {
+                width: 95%;
+                max-height: 90vh;
+            }
+        }
     </style>
 </head>
 <body>
@@ -476,36 +616,71 @@
     </div>
     </div>
 
-    <!-- Settings Modal -->
-    <div class="modal-overlay" id="settings-modal">
-        <div class="modal">
-            <h3>设置</h3>
-            <div class="form-group">
-                <label for="api-key-input">Gemini API 密钥</label>
-                <input type="password" id="api-key-input" placeholder="请输入您的 Gemini API Key">
-            </div>
-            <div class="form-group">
-                <label for="model-select">选择模型</label>
-                <select id="model-select">
-                    <option value="gemini-2.5-pro">Gemini 2.5 Pro (最新，最强大)</option>
-                    <option value="gemini-2.5-flash">Gemini 2.5 Flash (最新，性价比高)</option>
-                    <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite (最新，成本效益)</option>
-                    <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash</option>
-                    <option value="gemini-2.0-pro-exp">Gemini 2.0 Pro</option>
-                    <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-                    <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-                    <option value="gemini-1.0-pro">Gemini 1.0 Pro</option>
-                </select>
-                <small style="color: var(--text-secondary); font-size: 0.9em; margin-top: 5px; display: block;">
-                    推荐使用Gemini 2.5系列，这是Google最新最强大的模型，支持思考功能和多模态理解
-                </small>
-            </div>
-            <div class="modal-actions">
-                <button id="cancel-settings-btn">取消</button>
-                <button class="save-settings-btn" id="save-settings-btn">保存</button>
+            <!-- Settings Modal -->
+        <div class="modal-overlay" id="settings-modal">
+            <div class="modal">
+                <h3>设置</h3>
+                <div class="form-group">
+                    <label for="api-key-input">Gemini API 密钥</label>
+                    <input type="password" id="api-key-input" placeholder="请输入您的 Gemini API Key">
+                </div>
+                <div class="form-group">
+                    <label for="model-select">选择模型</label>
+                    <select id="model-select">
+                        <option value="gemini-2.5-pro">Gemini 2.5 Pro (最新，最强大)</option>
+                        <option value="gemini-2.5-flash">Gemini 2.5 Flash (最新，性价比高)</option>
+                        <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite (最新，成本效益)</option>
+                        <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash</option>
+                        <option value="gemini-2.0-pro-exp">Gemini 2.0 Pro</option>
+                        <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                        <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                        <option value="gemini-1.0-pro">Gemini 1.0 Pro</option>
+                    </select>
+                    <small style="color: var(--text-secondary); font-size: 0.9em; margin-top: 5px; display: block;">
+                        推荐使用Gemini 2.5系列，这是Google最新最强大的模型，支持思考功能和多模态理解
+                    </small>
+                </div>
+                <div class="modal-actions">
+                    <button id="cancel-settings-btn">取消</button>
+                    <button class="save-settings-btn" id="save-settings-btn">保存</button>
+                </div>
             </div>
         </div>
-    </div>
+
+        <!-- Optimization Result Modal -->
+        <div class="modal-overlay" id="optimization-modal">
+            <div class="modal optimization-modal">
+                <div class="optimization-header">
+                    <h3><i class="fa-solid fa-magic"></i> AI优化结果</h3>
+                    <button class="close-btn" id="close-optimization-btn">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                </div>
+                <div class="optimization-content">
+                    <div class="comparison-section">
+                        <div class="original-section">
+                            <h4><i class="fa-solid fa-file-lines"></i> 原始内容</h4>
+                            <div class="content-box original-content" id="original-content-display"></div>
+                        </div>
+                        <div class="arrow-section">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </div>
+                        <div class="optimized-section">
+                            <h4><i class="fa-solid fa-wand-magic-sparkles"></i> 优化后内容</h4>
+                            <div class="content-box optimized-content" id="optimized-content-display"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="optimization-actions">
+                    <button class="btn btn-secondary" id="reject-optimization-btn">
+                        <i class="fa-solid fa-times"></i> 拒绝优化
+                    </button>
+                    <button class="btn btn-primary" id="apply-optimization-btn">
+                        <i class="fa-solid fa-check"></i> 应用优化
+                    </button>
+                </div>
+            </div>
+        </div>
 
     <script>
         // 处理自定义输入显示/隐藏
@@ -642,11 +817,7 @@ ${originalContent}
                 }
                 
                 // 显示优化结果确认对话框
-                const confirmed = confirm(`AI优化完成！\n\n原始内容：\n${originalContent}\n\n优化后内容：\n${optimizedContent}\n\n是否应用优化结果？`);
-                
-                if (confirmed) {
-                    textarea.value = optimizedContent;
-                }
+                showOptimizationResult(originalContent, optimizedContent, textarea);
                 
             } catch (error) {
                 console.error('AI优化失败:', error);
@@ -763,6 +934,53 @@ ${originalContent}
                 apiKeyInput.value = localStorage.getItem('geminiApiKey') || '';
                 modelSelect.value = localStorage.getItem('geminiModel') || 'gemini-2.5-pro';
             }
+        }
+
+        // 显示优化结果
+        function showOptimizationResult(originalContent, optimizedContent, textarea) {
+            const modal = document.getElementById('optimization-modal');
+            const originalDisplay = document.getElementById('original-content-display');
+            const optimizedDisplay = document.getElementById('optimized-content-display');
+            
+            // 设置内容
+            originalDisplay.textContent = originalContent;
+            optimizedDisplay.textContent = optimizedContent;
+            
+            // 显示模态框
+            modal.style.display = 'flex';
+            
+            // 绑定事件
+            const closeBtn = document.getElementById('close-optimization-btn');
+            const rejectBtn = document.getElementById('reject-optimization-btn');
+            const applyBtn = document.getElementById('apply-optimization-btn');
+            
+            // 关闭模态框
+            function closeModal() {
+                modal.style.display = 'none';
+            }
+            
+            // 拒绝优化
+            function rejectOptimization() {
+                closeModal();
+            }
+            
+            // 应用优化
+            function applyOptimization() {
+                textarea.value = optimizedContent;
+                closeModal();
+            }
+            
+            // 移除旧的事件监听器
+            closeBtn.onclick = closeModal;
+            rejectBtn.onclick = rejectOptimization;
+            applyBtn.onclick = applyOptimization;
+            
+            // 点击模态框外部关闭
+            modal.onclick = function(e) {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            };
         }
 
         // 保存设置
