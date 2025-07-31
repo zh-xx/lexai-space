@@ -612,6 +612,18 @@
                 <div class="preview-title">表单信息预览</div>
                 <div class="preview-content" id="preview-content"></div>
             </div>
+
+            <!-- Generation Result Container -->
+            <div class="preview-container" id="generation-result-container" style="margin-top: 30px; display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div class="preview-title">AI生成结果</div>
+                    <div class="header-actions">
+                        <button id="copy-result-btn" title="复制内容" class="btn btn-secondary" style="padding: 8px 12px;"><i class="fa-solid fa-copy"></i></button>
+                        <button id="download-result-btn" title="下载为 .txt" class="btn btn-secondary" style="padding: 8px 12px;"><i class="fa-solid fa-download"></i></button>
+                    </div>
+                </div>
+                <div class="preview-content" id="generation-result-content" style="max-height: 500px; overflow-y: auto;"></div>
+            </div>
         </div>
     </div>
     </div>
@@ -871,13 +883,16 @@ ${originalContent}
         });
 
         // 表单提交处理
-        document.getElementById('contract-form').addEventListener('submit', function(e) {
+        document.getElementById('contract-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            const generateBtn = document.getElementById('generate-btn');
+            const resultContainer = document.getElementById('generation-result-container');
+            const resultContent = document.getElementById('generation-result-content');
+
             // 验证必填字段
             const requiredFields = ['contract-type', 'position', 'background', 'parties', 'business'];
             let isValid = true;
-            
             requiredFields.forEach(fieldId => {
                 const field = document.getElementById(fieldId);
                 if (!field.value || field.value === '') {
@@ -893,30 +908,226 @@ ${originalContent}
                 return;
             }
             
-            // 检查API密钥
             const apiKey = localStorage.getItem('geminiApiKey');
             if (!apiKey) {
                 alert('请先在设置中配置您的Gemini API密钥。');
                 toggleSettingsModal(true);
                 return;
             }
-            
-            // 收集表单数据
-            const formData = {
-                contractType: document.getElementById('contract-type').value === 'custom' 
-                    ? document.getElementById('custom-type').value 
-                    : document.getElementById('contract-type').value,
-                position: document.getElementById('position').value === 'custom' 
-                    ? document.getElementById('custom-position').value 
-                    : document.getElementById('position').value,
-                background: document.getElementById('background').value,
-                parties: document.getElementById('parties').value,
-                business: document.getElementById('business').value,
-                other: document.getElementById('other').value
-            };
-            
-            console.log('表单数据：', formData);
-            alert('表单验证通过！后续将集成AI生成功能。');
+
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 生成中...';
+            resultContainer.style.display = 'block';
+            resultContent.textContent = '正在请求AI，根据您的要求和专业的合同框架生成文本，请稍候...';
+
+            try {
+                const formData = {
+                    contractType: document.getElementById('contract-type').value === 'custom' 
+                        ? document.getElementById('custom-type').value 
+                        : document.getElementById('contract-type').value,
+                    position: document.getElementById('position').value === 'custom' 
+                        ? document.getElementById('custom-position').value 
+                        : document.getElementById('position').value,
+                    background: document.getElementById('background').value,
+                    parties: document.getElementById('parties').value,
+                    business: document.getElementById('business').value,
+                    other: document.getElementById('other').value
+                };
+
+                const prompt = `
+                    请根据以下用户输入的核心信息，并参考我提供的专业合同框架，以一名资深法律专家的身份，生成一份完整、严谨且符合实际情况的合同。AI应根据合同的类型和具体业务模式，智能地调整、增删或优化条款，而不是机械地填充框架。
+
+                    ### 用户输入的核心信息:
+                    - **合同类型:** ${formData.contractType}
+                    - **我的立场:** ${formData.position}
+                    - **合同背景与目的:** ${formData.background}
+                    - **合同主体信息:** ${formData.parties}
+                    - **核心业务模式与条款:** ${formData.business}
+                    - **其他特殊要求:** ${formData.other || '无'}
+
+                    ---
+
+                    ### 专业合同生成参考框架 (请以此为基础，并根据合同类型和用户要求进行调整):
+
+                    **# 合同标题**
+                    (根据合同类型生成一个合适的标题)
+
+                    **# 主体信息**
+                    (根据用户输入整理，至少应包含姓名/名称、号码（身份证号/统一社会信用代码）、联系方式、地址。如果信息不全，请留空待填写)
+
+                    **# 鉴于**
+                    (介绍合同背景和目的)
+                    - 签订时间：
+                    - 签订地点：
+
+                    **# 名词解释**
+                    (如有必要可对关键名词进行解释)
+
+                    **# 合同期限**
+
+                    **# 合同标的条款**
+                    - 标的物数量具体明确，使用明确单位
+                    - 标的物类别、品牌、型号、规格清晰描述
+                    - 标的物质量标准明确（行业标准、国家标准或约定标准）
+                    - 验收条款具有操作性（时间、方式、标准、不合格处理流程）
+                    - 标的物的合法性与权属状况说明清楚（是否存在抵押、查封等）
+
+                    **# 合同价款条款**
+                    - 价格构成明确（单价、总价、计算方式）
+                    - 计价方式明确（按件、按时间、按工作量等）
+                    - 货币单位明确，汇率问题考虑（跨境交易）
+                    - 价税分离，税费承担明确
+                    - 付款方式明确（一次性、分期、质保金）
+                    - 付款节点与履行进度匹配
+                    - 付款条件明确且可操作
+                    - 付款凭证与发票约定清晰
+
+                    **# 合同履行条款**
+                    - 履行时间明确具体（避免"合理时间"等模糊表述）
+                    - 履行地点具体明确
+                    - 履行方式详细描述（交付方式、包装要求、运输方式）
+                    - 履行程序结构化说明（每个步骤的具体操作）
+                    - 权利转移点明确（所有权转移时间）
+                    - 风险转移点明确（风险责任承担时间）
+                    - 履行中的通知义务明确规定
+
+                    **# 权利义务条款**
+                    - 主要权利全面列举，无遗漏
+                    - 不存在隐含的弃权条款
+                    - 豁免条款合理（特别是不可抗力范围）
+                    - 主要义务无遗漏，履行标准明确
+                    - 义务的合理性与可执行性
+                    - 后合同义务明确（如保密延续期限）
+                    - 从权利义务明确（附属于主权利的权利义务）
+
+                    **# 知识产权条款**
+                    - 知识产权归属明确
+                    - 合同履行过程中产生的知识产权归属明确
+                    - 知识产权使用权范围、目的、期限明确
+                    - 知识产权转让与许可条件清晰
+                    - 知识产权保护与维护责任分配
+                    - 保密与竞争限制期限、范围合理
+
+                    **# 违约责任条款**
+                    - 违约行为的定义明确全面（迟延履行、质量不合格、拒绝履行等）
+                    - 违约责任形式明确（继续履行、采取补救、赔偿损失、支付违约金）
+                    - 违约金比例合理（既不过高具惩罚性，也不过低难以弥补损失）
+                    - 违约责任对双方公平，如已经选择了立场，则倾向于合同生成立场（注意违约金比例是否对等）
+                    - 违约责任的计算方式明确
+
+                    **# 合同变更、解除、终止条款**
+                    - 变更条件明确（哪些情况下可以变更）
+                    - 变更程序规范（书面变更、通知方式、签署程序）
+                    - 解除条件合理（法定解除条件、约定解除条件）
+                    - 解除程序的操作性（通知方式、时间限制）
+                    - 终止条件的明确性（何种情况下自动终止）
+                    - 存续条款的合理性（哪些条款在合同终止后继续有效）
+                    - 终止后的权利义务安排（清算、资料返还等）
+
+                    **# 法律适用条款**
+                    - 适用法律明确（具体到哪个国家/地区的法律）
+                    - 所选法律的合理性（与合同标的、履行地的关联）
+                    - 是否与强制性规定冲突（履行地法律的强制性规定）
+                    - 选择的法律在实际纠纷中的可适用性与可执行性
+
+                    **# 保密条款**
+                    - 保密信息范围明确定义
+                    - 保密期限明确且合理
+                    - 例外情况合理且有限定
+                    - 违反保密义务的责任明确
+
+                    **# 不可抗力条款**
+                    - 不可抗力事件定义合理（避免将可控因素纳入）
+                    - 通知义务明确（时间、方式、证明材料）
+                    - 责任减免条件公平合理
+                    - 不可抗力事件持续的后续处理措施明确
+
+                    **# 争议解决条款**
+                    - 争议解决方式选择明确（协商、诉讼、仲裁）
+                    - 管辖地点或仲裁机构明确
+                    - 避免存在争议解决方式冲突（如避免同时约定仲裁和诉讼）
+                    - 适用法律选择与争议解决方式匹配
+
+                    **# 送达条款**
+                    - 送达方式明确（当面送达、邮寄、电子邮件等）
+                    - 送达地址或联系方式准确完整
+                    - 送达时间和生效条件明确
+                    - 地址变更通知义务明确
+
+                    **# 授权条款**
+                    - 授权人员身份明确具体
+                    - 授权范围和权限清晰界定
+                    - 授权期限合理规定
+                    - 撤销或变更授权的机制完善
+
+                    **# 生效条款**
+                    - 合同份数与各方持有数量
+                    - 合同成立与生效是否有明确区分
+                    - 生效条件明确（签署即生效、附条件生效、附期限生效）
+                    - 生效条件的可行性
+                    - 生效前的法律责任安排
+
+                    **# 其他条款**
+                    (根据用户输入的其他要求生成，如无则忽略)
+
+                    **# 签字盖章部分**
+                    (为各方主体留出签字盖章区域)
+
+                    **# 附件**
+                    (如有必要可以附件方式呈现)
+
+                    **最终指令：请直接返回纯文本格式的完整合同，不要包含任何Markdown标记或额外说明。**
+                `;
+
+                const selectedModel = localStorage.getItem('geminiModel') || 'gemini-1.5-flash';
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`API 错误: ${errorData.error?.message || response.statusText}`);
+                }
+
+                const data = await response.json();
+                const generatedText = data.candidates[0].content.parts[0].text;
+                resultContent.textContent = generatedText;
+
+            } catch (error) {
+                resultContent.textContent = `生成失败: ${error.message}`;
+                console.error('生成合同失败:', error);
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = '<i class="fa-solid fa-magic"></i> 生成合同';
+            }
+        });
+
+        // 复制和下载结果
+        document.getElementById('copy-result-btn').addEventListener('click', () => {
+            const content = document.getElementById('generation-result-content').textContent;
+            if (!content || content.startsWith('正在请求') || content.startsWith('生成失败')) {
+                alert('没有可复制的内容。');
+                return;
+            }
+            navigator.clipboard.writeText(content).then(() => alert('合同内容已复制到剪贴板！')).catch(err => alert('复制失败'));
+        });
+
+        document.getElementById('download-result-btn').addEventListener('click', () => {
+            const content = document.getElementById('generation-result-content').textContent;
+            if (!content || content.startsWith('正在请求') || content.startsWith('生成失败')) {
+                alert('没有可下载的内容。');
+                return;
+            }
+            const contractType = document.getElementById('contract-type').value || '合同';
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${contractType}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         });
 
         // 设置相关功能
