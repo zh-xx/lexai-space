@@ -37,14 +37,6 @@
             font-size: 15px; /* Base font size, adjust as needed */
         }
         
-        /* 整体缩放效果 - 模拟浏览器90%缩放 */
-        body {
-            transform: scale(0.9);
-            transform-origin: top left;
-            width: 111.11%; /* 100% / 0.9 = 111.11% 来补偿缩放 */
-            height: 111.11%;
-            overflow-x: hidden;
-        }
         body {
             font-family: var(--font-sans);
             line-height: 1.6;
@@ -706,7 +698,7 @@
             cursor: pointer;
             transition: all 0.2s;
             font-size: 0.9em;
-            display: none;
+            display: flex;
             align-items: center;
             gap: 6px;
         }
@@ -769,9 +761,6 @@
         @media (max-width: 1200px) {
             .secondary-actions {
                 display: none;
-            }
-            .more-actions-btn {
-                display: flex;
             }
         }
         
@@ -1034,11 +1023,6 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="secondary-actions">
-                            <button id="export-history-btn"><i class="fa-solid fa-download"></i> 导出历史</button>
-                            <button id="import-history-btn"><i class="fa-solid fa-upload"></i> 导入历史</button>
-                            <button id="settings-btn"><i class="fa-solid fa-gear"></i> 配置密钥</button>
-                        </div>
                         <button class="more-actions-btn" id="more-actions-btn">
                             <i class="fa-solid fa-ellipsis-h"></i> 更多
                         </button>
@@ -1147,16 +1131,12 @@
                                     </div>
                                 </div>
                             </div>
-                            <button id="save-to-history-btn"><i class="fa-solid fa-save"></i> 保存到历史</button>
-                        </div>
-                        <div class="secondary-actions">
-                            <button id="export-pdf-btn"><i class="fa-solid fa-file-pdf"></i> 导出为PDF</button>
-                            <button id="new-review-btn"><i class="fa-solid fa-rotate-right"></i> 开始新审核</button>
                         </div>
                         <button class="more-actions-btn" id="more-actions-btn-results">
                             <i class="fa-solid fa-ellipsis-h"></i> 更多
                         </button>
                         <div class="more-actions-panel" id="more-actions-panel-results">
+                            <button id="save-to-history-btn-more"><i class="fa-solid fa-save"></i> 保存到历史</button>
                             <button id="export-pdf-btn-more"><i class="fa-solid fa-file-pdf"></i> 导出为PDF</button>
                             <button id="new-review-btn-more"><i class="fa-solid fa-rotate-right"></i> 开始新审核</button>
                         </div>
@@ -1253,10 +1233,7 @@
         const progressFill = document.getElementById('progress-fill');
 
         const submitBtn = document.getElementById('submitBtn');
-        const settingsBtn = document.getElementById('settings-btn');
         const saveApiKeyBtn = document.getElementById('save-api-key-btn');
-        const exportPdfBtn = document.getElementById('export-pdf-btn');
-        const newReviewBtn = document.getElementById('new-review-btn');
         const fileNameDisplay = document.getElementById('file-name-display');
         
         const resultsContent = document.getElementById('results-content');
@@ -1280,10 +1257,6 @@
         const historyCountResults = document.getElementById('history-count-results');
         const historyStatsResults = document.getElementById('history-stats-results');
         
-        const exportHistoryBtn = document.getElementById('export-history-btn');
-        const importHistoryBtn = document.getElementById('import-history-btn');
-        const saveToHistoryBtn = document.getElementById('save-to-history-btn');
-        
         // More actions elements
         const moreActionsBtn = document.getElementById('more-actions-btn');
         const moreActionsPanel = document.getElementById('more-actions-panel');
@@ -1301,47 +1274,36 @@
 
         // --- View Management ---
         function showView(viewName) {
+            // Hide all top-level views first
             actionView.style.display = 'none';
             processingView.style.display = 'none';
             resultsView.style.display = 'none';
 
-            // Control left panel visibility by adding/removing a class on the container
-            if (viewName === 'results' || viewName === 'action') {
-                if (viewName === 'results') {
-                    mainContainer.classList.add('state-results');
-                } else {
-                    mainContainer.classList.remove('state-results');
-                }
-                // 在结果视图和提交审核视图中隐藏左边的合同原文面板
-                const leftPanel = document.querySelector('.left-panel');
-                if (leftPanel) {
-                    leftPanel.style.display = 'none';
-                }
-                // 让右边面板占满整个宽度
-                const rightPanel = document.querySelector('.right-panel');
-                if (rightPanel) {
-                    rightPanel.style.width = '100%';
-                }
-            } else if (viewName === 'processing') {
-                mainContainer.classList.remove('state-results');
-                // 在处理中视图中显示左边面板（显示上传的文件）
-                const leftPanel = document.querySelector('.left-panel');
-                if (leftPanel) {
-                    leftPanel.style.display = 'flex';
-                }
-                // 恢复右边面板的原始宽度
-                const rightPanel = document.querySelector('.right-panel');
-                if (rightPanel) {
-                    rightPanel.style.width = '';
-                }
-            }
-            
+            // The processing view is a full-screen overlay. When it's active, we want to prevent the
+            // main page from scrolling. This fixes the issue where the animation is not fixed on screen.
+            document.body.style.overflow = (viewName === 'processing') ? 'hidden' : '';
+
+            // Now, set the correct view and layout classes
             if (viewName === 'action') {
                 actionView.style.display = 'block';
+                mainContainer.classList.remove('state-results');
+                mainContainer.classList.add('state-initial');
             } else if (viewName === 'processing') {
+                // When processing, the overlay is shown. The underlying layout should show the document
+                // that was just uploaded, so we use the 'results' state which makes the left panel visible.
+                mainContainer.classList.add('state-results');
+                mainContainer.classList.remove('state-initial');
+                
+                // We need a view to be visible underneath the overlay to maintain the layout.
+                // The overlay will cover it, so it doesn't matter which one.
+                actionView.style.display = 'block'; 
+                
+                // Finally, show the processing overlay itself.
                 processingView.style.display = 'flex';
             } else if (viewName === 'results') {
                 resultsView.style.display = 'block';
+                mainContainer.classList.remove('state-results');
+                mainContainer.classList.add('state-initial');
             }
         }
 
@@ -2370,16 +2332,8 @@
             }
         });
 
-        exportPdfBtn.addEventListener('click', exportPdf);
-        settingsBtn.addEventListener('click', toggleSettings);
         saveApiKeyBtn.addEventListener('click', saveApiKey);
         submitBtn.addEventListener('click', runWorkflow);
-        newReviewBtn.addEventListener('click', () => {
-            docInput.value = ''; // Clear the file input
-            fileNameDisplay.textContent = '点击或拖拽文件到此处';
-            docViewer.innerHTML = '<h2>请在右侧上传 .docx 合同文件</h2>';
-            showView('action');
-        });
 
         // History panel event listeners
         historyToggleBtn.addEventListener('click', toggleHistoryPanel);
@@ -2438,10 +2392,6 @@
             });
         });
 
-        // History action buttons
-        saveToHistoryBtn.addEventListener('click', saveCurrentReviewToHistory);
-        exportHistoryBtn.addEventListener('click', exportAllHistory);
-        importHistoryBtn.addEventListener('click', importHistory);
         
         // More actions event listeners
         if (moreActionsBtn) {
@@ -2478,6 +2428,10 @@
                 docViewer.innerHTML = '<h2>请在右侧上传 .docx 合同文件</h2>';
                 showView('action');
             });
+        }
+
+        if (document.getElementById('save-to-history-btn-more')) {
+            document.getElementById('save-to-history-btn-more').addEventListener('click', saveCurrentReviewToHistory);
         }
 
         // Initialize history records
