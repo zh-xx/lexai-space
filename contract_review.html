@@ -1,0 +1,1864 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能合同审核工具</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        /* 隐藏浏览器默认进度条 */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        * {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
+        :root {
+            --primary-color: #5A67D8; /* Indigo 600 */
+            --primary-hover: #4C51BF; /* Indigo 700 */
+            --secondary-color: #F7FAFC; /* Gray 100 */
+            --border-color: #E2E8F0; /* Gray 300 */
+            --text-color: #2D3748; /* Gray 800 */
+            --text-secondary: #718096; /* Gray 600 */
+            --card-bg: #FFFFFF;
+            --code-bg: #F7FAFC;
+            --font-sans: 'Inter', 'Noto Sans SC', sans-serif;
+            font-size: 15px; /* Base font size, adjust as needed */
+        }
+        body {
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            color: var(--text-color);
+            background: linear-gradient(135deg, #E9E6F5 0%, #D8E2F8 100%);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-container.state-initial .right-panel {
+            display: flex;
+            align-items: center; /* Vertical centering */
+            justify-content: center;
+            flex-grow: 1;
+        }
+        .main-container.state-initial .right-panel > div {
+            width: 100%;
+            max-width: 960px;
+        }
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        .left-panel, .right-panel {
+            height: 100%;
+            overflow-y: auto;
+            padding: 30px 40px; /* Increased horizontal padding */
+            box-sizing: border-box;
+            position: relative;
+        }
+        .left-panel {
+            flex: 1;
+            border-right: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+        }
+        .right-panel {
+            flex: 1.2;
+        }
+
+        /* Hide left panel unless results are shown */
+        .main-container:not(.state-results) .left-panel {
+            display: none;
+        }
+        .main-container:not(.state-results) .right-panel {
+            max-width: 960px;
+            margin: 0 auto;
+            flex-grow: 1; /* Needed for margin:auto to work in flex */
+        }
+        #document-viewer {
+            border: 1px solid var(--border-color);
+            min-height: calc(100vh - 160px);
+            padding: 25px;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        #document-viewer h2 {
+            text-align: center;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .form-group {
+            margin-bottom: 35px; /* Increased spacing */
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px; /* Adjusted spacing */
+            color: var(--text-color);
+            font-size: 1.1em;
+        }
+        label i { margin-right: 8px; color: var(--primary-color); }
+        .label-description {
+            font-size: 0.85em;
+            font-weight: 400;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+        input[type="text"], input[type="password"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            font-size: 1em;
+        }
+        /* Custom File Input */
+        .custom-file-input {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            height: 50px;
+        }
+        .custom-file-input input[type="file"] {
+            position: absolute;
+            left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer;
+        }
+        .file-input-label {
+            background-color: var(--secondary-color);
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+            font-weight: 500;
+            height: 100%;
+            box-sizing: border-box;
+        }
+        .file-input-label i {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        .custom-file-input:hover .file-input-label {
+            border-color: var(--primary-color);
+            background-color: #fff;
+            color: var(--primary-color);
+        }
+        #file-name-display {
+            margin-top: 10px;
+            font-style: italic;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+
+        /* Custom Save Button in Settings */
+        .settings-panel .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .settings-panel button {
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.2s;
+            align-self: flex-start; /* Align to the left */
+            margin-top: 10px;
+        }
+        .settings-panel button:hover {
+            background: var(--primary-hover);
+        }
+        input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.3);
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        button#submitBtn {
+            background: linear-gradient(45deg, var(--primary-color), #7F9CF5);
+            color: white;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            width: 100%;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button#submitBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(90, 103, 216, 0.4);
+        }
+        button:disabled {
+            background: #BDBDBD;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        .error-box { border: 1px solid #FED7D7; background-color: #FFF5F5; color: #C53030; padding: 15px; border-radius: 8px; }
+        .chart-container { width: 100%; min-height: 400px; }
+
+        /* --- New Layout & Card Styles --- */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .app-header h1, .app-header h2 {
+            margin: 0;
+            font-size: 1.8em;
+            color: var(--text-color);
+        }
+        .app-header h1 i, .app-header h2 i {
+            color: var(--primary-color);
+            margin-right: 12px;
+        }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .header-actions button {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            font-size: 14px;
+            width: auto;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .header-actions button:hover {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(90, 103, 216, 0.2);
+        }
+        .action-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.07);
+        }
+        .settings-panel {
+            padding: 25px;
+            border: 1px solid var(--border-color);
+            background-color: #fafafa;
+            margin-bottom: 25px;
+            border-radius: 8px;
+        }
+
+        /* --- View Specific Styles --- */
+        #action-view, #processing-view, #results-view {
+            display: none; /* All views hidden by default */
+        }
+        .spinner-overlay {
+            position: fixed; /* Change to fixed for true fullscreen */
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(15, 23, 42, 0.9); /* Darker, more sci-fi background */
+            z-index: 9999;
+            align-items: center;
+            justify-content: center; /* 改回居中显示 */
+            flex-direction: column;
+            gap: 20px;
+            backdrop-filter: blur(8px);
+            overflow: hidden; /* Important for pseudo-elements */
+            /* Add a radial gradient for vignette/spotlight effect */
+            background-image: radial-gradient(circle at center, rgba(90, 103, 216, 0.2) 0%, transparent 60%);
+        }
+        .spinner-overlay::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: 
+                linear-gradient(rgba(90, 103, 216, 0.3) 1px, transparent 1px),
+                linear-gradient(to right, rgba(90, 103, 216, 0.3) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.2;
+            animation: pan-grid 30s linear infinite;
+        }
+        .spinner-overlay::after {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+            animation: scan-line 5s ease-in-out infinite;
+            animation-delay: 1s;
+        }
+        @keyframes pan-grid {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
+        }
+        @keyframes scan-line {
+            0% { top: -100%; }
+            100% { top: 100%; }
+        }
+        /* --- Sci-Fi Spinner --- */
+        .sci-fi-spinner {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .sci-fi-spinner .ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+        .sci-fi-spinner .ring-1 {
+            width: 100px;
+            height: 100px;
+            border-top-color: var(--primary-color);
+            animation-name: spin-clockwise;
+            animation-duration: 2s;
+        }
+        .sci-fi-spinner .ring-2 {
+            width: 80px;
+            height: 80px;
+            border-bottom-color: #7F9CF5;
+            animation-name: spin-counter-clockwise;
+            animation-duration: 1.5s;
+        }
+        .sci-fi-spinner .ring-3 {
+            width: 60px;
+            height: 60px;
+            border-left-color: var(--primary-color);
+            animation-name: spin-clockwise;
+            animation-duration: 3s;
+        }
+        .sci-fi-spinner .core {
+            width: 20px;
+            height: 20px;
+            background-color: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--primary-color), 0 0 25px #fff;
+            animation: pulse 1.2s ease-in-out infinite alternate;
+        }
+        @keyframes spin-clockwise {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes spin-counter-clockwise {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(-360deg); }
+        }
+        @keyframes pulse {
+            0% {
+                transform: scale(0.8);
+                box-shadow: 0 0 10px var(--primary-color), 0 0 15px #fff;
+            }
+            100% {
+                transform: scale(1.2);
+                box-shadow: 0 0 20px var(--primary-color), 0 0 35px #fff;
+            }
+        }
+        #spinner-status-text {
+            font-size: 1.2em;
+            color: #fff;
+            font-weight: 500;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 16px var(--primary-color);
+            letter-spacing: 2px;
+            animation: text-glow 2.5s ease-in-out infinite alternate;
+        }
+        @keyframes text-glow {
+            from {
+                opacity: 0.8;
+                text-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 16px var(--primary-color);
+            }
+            to {
+                opacity: 1;
+                text-shadow: 0 0 12px rgba(255, 255, 255, 0.9), 0 0 24px var(--primary-color);
+            }
+        }
+
+        /* --- Result Module Styles --- */
+        .result-module {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            margin-bottom: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: box-shadow 0.3s ease;
+        }
+        .result-module:not(details):hover {
+            box-shadow: 0 7px 20px rgba(0,0,0,0.08);
+        }
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 25px;
+            margin-bottom: 0;
+        }
+        .module-header h3 {
+            margin: 0;
+            font-size: 1.25em;
+            color: var(--text-color);
+        }
+        .copy-btn {
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 18px;
+            transition: color 0.2s;
+        }
+        .copy-btn:hover { color: var(--primary-color); }
+        .content-area {
+            padding: 20px 25px;
+            font-size: 1em;
+            overflow-x: auto;
+        }
+
+        /* --- Risk Level Card --- */
+        .risk-card {
+            padding: 30px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            color: #fff;
+        }
+        .risk-card .icon { font-size: 3em; }
+        .risk-card .text-content h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.2em;
+            color: #fff;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+        .risk-card .text-content p {
+            margin: 0;
+            font-size: 2em;
+            font-weight: 700;
+        }
+        .risk-high { background: linear-gradient(45deg, #E53E3E, #FC8181); }
+        .risk-medium { background: linear-gradient(45deg, #DD6B20, #F6AD55); }
+        .risk-low { background: linear-gradient(45deg, #38A169, #68D391); }
+
+        /* --- Enhanced Details/Summary --- */
+        details.result-module {
+            padding: 0;
+        }
+        details.result-module:hover {
+            border-color: var(--primary-color);
+        }
+        details.result-module summary {
+            padding: 20px 25px;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-size: 1.25em;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        details.result-module summary::-webkit-details-marker { display: none; }
+        details.result-module .summary-title {
+            display: flex;
+            align-items: center;
+        }
+        details.result-module .summary-title i {
+            margin-right: 12px;
+            transition: transform 0.2s;
+            color: var(--primary-color);
+        }
+        details[open] > summary .summary-title i { transform: rotate(90deg); }
+        details.result-module > .content-area {
+            padding: 0 25px 25px 25px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        /* --- Markdown Styles --- */
+        .content-area h1, .content-area h2, .content-area h3, .content-area h4, .content-area h5 {
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.4em;
+            margin-top: 24px;
+            margin-bottom: 16px;
+        }
+        .content-area table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5em 0;
+            box-shadow: 0 0 0 1px var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .content-area th, .content-area td {
+            border: none;
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 15px;
+            text-align: left;
+        }
+        .content-area th {
+            background-color: var(--code-bg);
+            font-weight: 600;
+        }
+        .content-area tr:last-child td { border-bottom: none; }
+        .content-area blockquote {
+            border-left: 3px solid var(--primary-color);
+            padding-left: 1em;
+            color: var(--text-secondary);
+            margin-left: 0;
+        }
+        .content-area code {
+            background-color: var(--code-bg);
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 90%;
+            border-radius: 6px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+        }
+        .content-area pre {
+            background-color: var(--code-bg);
+            padding: 16px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow: auto;
+        }
+        .content-area pre code {
+            padding: 0;
+            margin: 0;
+            font-size: 100%;
+            background-color: transparent;
+        }
+
+        /* --- Radio Button Styles --- */
+        .radio-group {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            margin-top: 10px;
+        }
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .radio-option input[type="radio"] {
+            width: auto;
+            accent-color: var(--primary-color);
+            transform: scale(1.2);
+        }
+        .radio-option label {
+            font-weight: 500;
+            font-size: 1em;
+            margin-bottom: 0;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+        .radio-option input[type="radio"]:checked + label {
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        /* --- History Panel Styles --- */
+        .history-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 350px;
+            height: 100vh;
+            background: var(--card-bg);
+            border-right: 1px solid var(--border-color);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
+        .history-panel.open {
+            transform: translateX(0);
+        }
+        .history-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--secondary-color);
+        }
+        .history-header h3 {
+            margin: 0;
+            color: var(--text-color);
+            font-size: 1.2em;
+        }
+        .history-search {
+            margin-top: 15px;
+        }
+        .history-search input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+        .history-filters {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 4px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--card-bg);
+            font-size: 0.8em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        .history-list {
+            padding: 0;
+        }
+        .history-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .history-item:hover {
+            background-color: var(--secondary-color);
+        }
+        .history-item.selected {
+            background-color: rgba(90, 103, 216, 0.1);
+            border-left: 3px solid var(--primary-color);
+        }
+        .history-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        .history-file-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+        .history-file-icon {
+            color: var(--primary-color);
+            font-size: 1.2em;
+        }
+        .history-file-name {
+            font-weight: 500;
+            color: var(--text-color);
+            font-size: 0.95em;
+            word-break: break-word;
+        }
+        .history-file-size {
+            font-size: 0.8em;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+        .history-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85em;
+            color: var(--text-secondary);
+        }
+        .history-time {
+            font-size: 0.8em;
+        }
+        .history-risk {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: 500;
+        }
+        .history-risk.high { background: #FED7D7; color: #C53030; }
+        .history-risk.medium { background: #FEEBC8; color: #DD6B20; }
+        .history-risk.low { background: #C6F6D5; color: #38A169; }
+        .history-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 8px;
+        }
+        .history-action-btn {
+            padding: 4px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--card-bg);
+            font-size: 0.8em;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+        }
+        .history-action-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        .history-toggle-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9em;
+        }
+        .history-toggle-btn:hover {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .history-empty {
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+        .history-empty i {
+            font-size: 3em;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        .history-stats {
+            padding: 15px 20px;
+            background: var(--secondary-color);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+        .history-stats span {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- History Panel -->
+    <button class="history-toggle-btn" id="history-toggle-btn">
+        <i class="fa-solid fa-history"></i> 历史记录
+    </button>
+    
+    <div class="history-panel" id="history-panel">
+        <div class="history-header">
+            <h3><i class="fa-solid fa-history"></i> 审核历史</h3>
+            <div class="history-search">
+                <input type="text" id="history-search-input" placeholder="搜索文件名...">
+            </div>
+            <div class="history-filters">
+                <button class="filter-btn active" data-filter="all">全部</button>
+                <button class="filter-btn" data-filter="high">高风险</button>
+                <button class="filter-btn" data-filter="medium">中风险</button>
+                <button class="filter-btn" data-filter="low">低风险</button>
+            </div>
+        </div>
+        <div class="history-stats" id="history-stats">
+            共 <span id="history-count">0</span> 条记录
+        </div>
+        <div class="history-list" id="history-list">
+            <div class="history-empty" id="history-empty">
+                <i class="fa-solid fa-folder-open"></i>
+                <p>暂无审核历史</p>
+                <p style="font-size: 0.8em;">开始审核后，记录将自动保存</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="left-panel">
+            <h1><i class="fa-solid fa-file-contract"></i> 合同原文</h1>
+            <div id="document-viewer">
+                <h2>请在右侧上传 .docx 合同文件</h2>
+            </div>
+        </div>
+        <div class="right-panel">
+            <!-- View 1: Action View -->
+            <div id="action-view">
+                <div class="app-header">
+                    <h1><i class="fa-solid fa-shield-halved"></i> 智能合同审核工具</h1>
+                    <div class="header-actions">
+                        <button id="export-history-btn"><i class="fa-solid fa-download"></i> 导出历史</button>
+                        <button id="import-history-btn"><i class="fa-solid fa-upload"></i> 导入历史</button>
+                        <button id="settings-btn"><i class="fa-solid fa-gear"></i> 配置密钥</button>
+                    </div>
+                </div>
+                <div class="settings-panel" id="settings-panel" style="display: none;">
+                    <h3>API 密钥配置</h3>
+                    <div class="form-group">
+                        <label for="api-key-input">请输入您的扣子API密钥</label>
+                        <div class="label-description">密钥格式为 pat_...，会自动保存在您的浏览器中</div>
+                        <input type="password" id="api-key-input" placeholder="pat_...">
+                        <button id="save-api-key-btn"><i class="fa-solid fa-save"></i> 保存并关闭</button>
+                    </div>
+                </div>
+                <div class="action-card">
+                    <div class="form-group">
+                        <label for="input_doc"><i class="fa-solid fa-file-arrow-up"></i> 上传合同文档</label>
+                        <div class="label-description">请上传 .docx 格式的合同文件进行分析</div>
+                        <div class="custom-file-input">
+                            <input type="file" id="input_doc" required accept=".docx">
+                            <label for="input_doc" class="file-input-label">
+                                <i class="fa-solid fa-cloud-upload-alt"></i>
+                                <span id="file-name-display">点击或拖拽文件到此处</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-building-shield"></i> 主体审核方式</label>
+                        <div class="label-description">选择希望通过哪种方式核实合同主体的背景信息</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="tianyancha_false" name="tianyancha" value="false" checked>
+                                <label for="tianyancha_false">网络查询 (基础)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="tianyancha_true" name="tianyancha" value="true">
+                                <label for="tianyancha_true">天眼查 (更深入)</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="input_position"><i class="fa-solid fa-user-tie"></i> 审核立场</label>
+                        <div class="label-description">例如：甲方、乙方、出租方... (可选)</div>
+                        <input type="text" id="input_position" placeholder="输入您的合同立场">
+                    </div>
+                    <div class="form-group">
+                        <label for="input_text"><i class="fa-solid fa-pen-to-square"></i> 审核要求</label>
+                        <div class="label-description">请输入您特别关注的焦点问题或条款... (可选)</div>
+                        <textarea id="input_text" placeholder="例如：合同中是否存在与数据安全相关的风险..."></textarea>
+                    </div>
+                    <button id="submitBtn"><i class="fa-solid fa-rocket"></i> 开始审核</button>
+                </div>
+            </div>
+
+            <!-- View 3: Results View -->
+            <div id="results-view">
+                <div class="app-header">
+                    <h2><i class="fa-solid fa-chart-pie"></i> 审核结果</h2>
+                    <div class="header-actions">
+                        <button id="save-to-history-btn"><i class="fa-solid fa-save"></i> 保存到历史</button>
+                        <button id="export-pdf-btn"><i class="fa-solid fa-file-pdf"></i> 导出为PDF</button>
+                        <button id="new-review-btn"><i class="fa-solid fa-rotate-right"></i> 开始新审核</button>
+                    </div>
+                </div>
+                <div id="results-content">
+                    <!-- Results will be injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processing View (Full Screen Overlay) -->
+    <div id="processing-view" class="spinner-overlay">
+        <div class="sci-fi-spinner">
+            <div class="ring ring-1"></div>
+            <div class="ring ring-2"></div>
+            <div class="ring ring-3"></div>
+            <div class="core"></div>
+        </div>
+        <p id="spinner-status-text">正在准备...</p>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- Initialize Libraries ---
+        mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' });
+
+        // --- Global Config ---
+        const WORKFLOW_ID = "7477372363903352883";
+        const UPLOAD_API_URL = "https://api.coze.cn/v1/files/upload";
+        const STREAM_RUN_API_URL = "https://api.coze.cn/v1/workflow/stream_run";
+        const FILE_INPUT_VARIABLE_NAME = "input_doc"; 
+        const POSITION_INPUT_VARIABLE_NAME = "input_position"; 
+        const TEXT_INPUT_VARIABLE_NAME = "input_text"; 
+        const TIANYANCHA_INPUT_VARIABLE_NAME = "tianyancha";
+
+        // --- DOM Element Cache ---
+        const mainContainer = document.querySelector('.main-container');
+        const docInput = document.getElementById('input_doc');
+        const docViewer = document.getElementById('document-viewer');
+        const apiKeyInput = document.getElementById('api-key-input');
+        const settingsPanel = document.getElementById('settings-panel');
+        
+        const actionView = document.getElementById('action-view');
+        const processingView = document.getElementById('processing-view');
+        const resultsView = document.getElementById('results-view');
+        const spinnerStatusText = document.getElementById('spinner-status-text');
+
+        const submitBtn = document.getElementById('submitBtn');
+        const settingsBtn = document.getElementById('settings-btn');
+        const saveApiKeyBtn = document.getElementById('save-api-key-btn');
+        const exportPdfBtn = document.getElementById('export-pdf-btn');
+        const newReviewBtn = document.getElementById('new-review-btn');
+        const fileNameDisplay = document.getElementById('file-name-display');
+        
+        const resultsContent = document.getElementById('results-content');
+
+        // --- History Panel Elements ---
+        const historyToggleBtn = document.getElementById('history-toggle-btn');
+        const historyPanel = document.getElementById('history-panel');
+        const historySearchInput = document.getElementById('history-search-input');
+        const historyFilters = document.querySelectorAll('.filter-btn');
+        const historyList = document.getElementById('history-list');
+        const historyEmpty = document.getElementById('history-empty');
+        const historyCount = document.getElementById('history-count');
+        const historyStats = document.getElementById('history-stats');
+        const exportHistoryBtn = document.getElementById('export-history-btn');
+        const importHistoryBtn = document.getElementById('import-history-btn');
+        const saveToHistoryBtn = document.getElementById('save-to-history-btn');
+
+        // --- State ---
+        let originalFileBuffer = null;
+        let currentHistoryFilter = 'all';
+        let currentHistorySearch = '';
+        let historyRecords = [];
+        let currentReviewResults = null;
+
+        // --- View Management ---
+        function showView(viewName) {
+            actionView.style.display = 'none';
+            processingView.style.display = 'none';
+            resultsView.style.display = 'none';
+
+            // Control left panel visibility by adding/removing a class on the container
+            if (viewName === 'results') {
+                mainContainer.classList.add('state-results');
+            } else {
+                mainContainer.classList.remove('state-results');
+            }
+            
+            if (viewName === 'action') {
+                actionView.style.display = 'block';
+            } else if (viewName === 'processing') {
+                processingView.style.display = 'flex';
+            } else if (viewName === 'results') {
+                resultsView.style.display = 'block';
+            }
+        }
+
+        function resetResults() {
+            resultsContent.innerHTML = `
+                <div id="content-level-container"></div>
+                
+                <details class="result-module" id="module-mermaid" style="display: none;">
+                    <summary><span class="summary-title"><i class="fa-solid fa-chevron-right"></i>业务逻辑流程图</span></summary>
+                    <div id="content-mermaid" class="content-area"></div>
+                </details>
+
+                <details class="result-module" id="module-fan_chart" style="display: none;">
+                    <summary><span class="summary-title"><i class="fa-solid fa-chevron-right"></i>风险扇形图</span></summary>
+                    <div class="chart-container content-area" id="content-fan_chart"></div>
+                </details>
+
+                <details class="result-module" id="module-abstract" style="display: none;">
+                    <summary>
+                        <span class="summary-title"><i class="fa-solid fa-chevron-right"></i>合同简介</span>
+                        <i class="fa-solid fa-copy copy-btn" data-target="content-abstract" title="复制内容"></i>
+                    </summary>
+                    <div class="content-area" id="content-abstract"></div>
+                </details>
+
+                <details class="result-module" id="module-point" style="display: none;">
+                    <summary>
+                        <span class="summary-title"><i class="fa-solid fa-chevron-right"></i>高风险要点</span>
+                        <i class="fa-solid fa-copy copy-btn" data-target="content-point" title="复制内容"></i>
+                    </summary>
+                    <div class="content-area" id="content-point"></div>
+                </details>
+
+                <div id="detailed-reports-container">
+                    <details class="result-module" id="module-output_enterprise" style="display: none;">
+                        <summary>
+                            <span class="summary-title"><i class="fa-solid fa-chevron-right"></i>合同主体审核</span>
+                            <i class="fa-solid fa-copy copy-btn" data-target="content-output_enterprise" title="复制内容"></i>
+                        </summary>
+                        <div class="content-area" id="content-output_enterprise"></div>
+                    </details>
+                    <details class="result-module" id="module-output_basic" style="display: none;">
+                        <summary>
+                            <span class="summary-title"><i class="fa-solid fa-chevron-right"></i>合同基础审核</span>
+                            <i class="fa-solid fa-copy copy-btn" data-target="content-output_basic" title="复制内容"></i>
+                        </summary>
+                        <div class="content-area" id="content-output_basic"></div>
+                    </details>
+                    <details class="result-module" id="module-output_business" style="display: none;">
+                        <summary>
+                            <span class="summary-title"><i class="fa-solid fa-chevron-right"></i>业务条款审核</span>
+                            <i class="fa-solid fa-copy copy-btn" data-target="content-output_business" title="复制内容"></i>
+                        </summary>
+                        <div class="content-area" id="content-output_business"></div>
+                    </details>
+                    <details class="result-module" id="module-output_legal" style="display: none;">
+                        <summary>
+                            <span class="summary-title"><i class="fa-solid fa-chevron-right"></i>法律条款审核</span>
+                            <i class="fa-solid fa-copy copy-btn" data-target="content-output_legal" title="复制内容"></i>
+                        </summary>
+                        <div class="content-area" id="content-output_legal"></div>
+                    </details>
+                </div>
+            `;
+        }
+        
+        function resetDetailedReports() {
+            const container = document.getElementById('detailed-reports-container');
+            if(container) {
+                container.innerHTML = '';
+            }
+        }
+
+        // --- Functions ---
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                originalFileBuffer = null;
+                fileNameDisplay.textContent = '点击或拖拽文件到此处';
+                docViewer.innerHTML = '<h2>请在右侧上传 .docx 合同文件</h2>';
+                return;
+            }
+            fileNameDisplay.textContent = `已选择: ${file.name}`;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                originalFileBuffer = e.target.result;
+                docViewer.innerHTML = '<h2><i class="fas fa-spinner fa-spin"></i> 正在加载预览...</h2>';
+                mammoth.convertToHtml({ arrayBuffer: originalFileBuffer })
+                    .then(displayDocResult)
+                    .catch(handleDocError);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function displayDocResult(result) {
+            docViewer.innerHTML = result.value;
+        }
+
+        function handleDocError(err) {
+            console.error('文档预览失败:', err);
+            docViewer.innerHTML = `<h2 class="error"><i class="fas fa-exclamation-triangle"></i> 无法预览此文档。</h2><p>请确保它是有效的 .docx 文件。错误: ${err.message}</p>`;
+        }
+        
+        function toggleSettings() { settingsPanel.style.display = settingsPanel.style.display === 'block' ? 'none' : 'block'; }
+        
+        function saveApiKey() {
+            if (apiKeyInput.value && apiKeyInput.value.startsWith('pat_')) {
+                localStorage.setItem('cozeApiKey', apiKeyInput.value);
+                alert('API密钥已保存！');
+                toggleSettings();
+            } else { alert('请输入正确的API密钥，它应该以 "pat_" 开头。'); }
+        }
+
+        function getApiKey() { return localStorage.getItem('cozeApiKey'); }
+        
+        async function runWorkflow() {
+            const apiKey = getApiKey();
+            if (!apiKey) { alert("请先点击【配置密钥】按钮，设置您的API密钥。"); return; }
+            const docFile = docInput.files[0];
+            if (!docFile) { alert("请必须上传一份合同文档！"); return; }
+            
+            showView('processing');
+            submitBtn.disabled = true;
+            resetResults();
+            currentReviewResults = null; // 重置审核结果
+
+            try {
+                spinnerStatusText.textContent = "步骤 1/2: 正在上传文档...";
+                const fileId = await uploadFile(docFile, apiKey);
+                spinnerStatusText.textContent = "步骤 2/2: AI分析中，请稍候...";
+                await executeWorkflow(fileId, apiKey);
+                showView('results');
+            } catch (error) {
+                console.error('主流程出错:', error);
+                resultsContent.innerHTML = `<div class="error-box"><h3>审核失败</h3><p>${error.message}</p></div>`;
+                showView('results');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        }
+
+        async function uploadFile(file, apiKey) {
+            const formData = new FormData();
+            formData.append('file', file);
+            const response = await fetch(UPLOAD_API_URL, { method: 'POST', headers: { 'Authorization': `Bearer ${apiKey}` }, body: formData });
+            if (!response.ok) {
+                let errorMsg = `HTTP状态码: ${response.status}`;
+                try { errorMsg = `文件上传失败: ${(await response.json()).msg || response.statusText}`; } catch (e) {}
+                throw new Error(errorMsg);
+            }
+            const result = await response.json();
+            if (result.code === 0 && result.data && result.data.id) {
+                return result.data.id;
+            } else { throw new Error(`文件上传API返回错误: ${result.msg || '未能从返回信息中解析出file_id'}`); }
+        }
+        
+        async function executeWorkflow(fileId, apiKey) {
+            const position = document.getElementById('input_position').value;
+            const text = document.getElementById('input_text').value; 
+            const tianyancha = document.querySelector('input[name="tianyancha"]:checked').value === 'true';
+            const parameters = {
+                [FILE_INPUT_VARIABLE_NAME]: JSON.stringify({ "file_id": fileId }),
+                [TIANYANCHA_INPUT_VARIABLE_NAME]: tianyancha,
+                ...(position && { [POSITION_INPUT_VARIABLE_NAME]: position }),
+                ...(text && { [TEXT_INPUT_VARIABLE_NAME]: text }),
+            };
+            const body = { workflow_id: WORKFLOW_ID, parameters: parameters };
+            const response = await fetch(STREAM_RUN_API_URL, { method: 'POST', headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json', 'Accept': 'text/event-stream' }, body: JSON.stringify(body) });
+            if (!response.ok) { throw new Error(`启动工作流失败，状态码: ${response.status}`); }
+            
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) {
+                    if (buffer.length > 0) processRawBuffer(buffer);
+                    spinnerStatusText.textContent = "分析完成！";
+                    break;
+                }
+                buffer += decoder.decode(value, { stream: true });
+                const eventBlocks = buffer.split('\n\n');
+                buffer = eventBlocks.pop() || '';
+                for (const block of eventBlocks) { processRawBuffer(block); }
+            }
+        }
+        
+        function processRawBuffer(block) {
+            if (!block.trim()) return;
+            let eventType = 'Message', dataStr = '';
+            for (const line of block.split('\n')) {
+                if (line.startsWith('event:')) { eventType = line.substring('event:'.length).trim(); } 
+                else if (line.startsWith('data:')) { dataStr += line.substring('data:'.length).trim(); }
+            }
+            if (dataStr) {
+                try {
+                    const jsonData = JSON.parse(dataStr);
+                    processStreamEvent(eventType, jsonData);
+                } catch (e) { console.warn("无法解析的JSON数据:", dataStr, e); }
+            } else { processStreamEvent(eventType, {}); }
+        }
+
+        function processStreamEvent(eventType, data) {
+             if (eventType === 'Message' && data.content) {
+                try {
+                    const parsedData = JSON.parse(data.content);
+                    for (const key in parsedData) {
+                        renderModule(key, parsedData[key]);
+                        // 收集审核结果用于历史记录
+                        if (!currentReviewResults) currentReviewResults = {};
+                        currentReviewResults[key] = parsedData[key];
+                    }
+                } catch (e) {
+                    console.log("流式文本片段(已忽略):", data.content);
+                }
+            } else if (eventType === 'Error') {
+                throw new Error(`[${data.error_code}] ${data.error_message}`);
+            } else if (eventType === 'Done') {
+                spinnerStatusText.textContent = "全部流程执行完毕！";
+            }
+        }
+
+        function extractCodeFromMarkdown(str) {
+            if (!str) return '';
+            const cleanStr = str.trim();
+            
+            // 尝试匹配 ```mermaid ... ``` 格式
+            const mermaidMatch = /^```mermaid\s*\n([\s\S]*?)\n```$/.exec(cleanStr);
+            if (mermaidMatch) {
+                return mermaidMatch[1].trim();
+            }
+            
+            // 尝试匹配 ``` ... ``` 格式（没有语言标识）
+            const codeMatch = /^```(?:\w+)?\n([\s\S]*?)\n```$/.exec(cleanStr);
+            if (codeMatch) {
+                return codeMatch[1].trim();
+            }
+            
+            // 如果没有代码块标记，直接返回原字符串
+            return cleanStr;
+        }
+
+        function handleCopy(target) {
+            const targetId = target.dataset.target;
+            const contentEl = document.getElementById(targetId);
+            if (!contentEl) return;
+            navigator.clipboard.writeText(contentEl.innerText).then(() => {
+                const originalIcon = target.className;
+                target.className = "fa-solid fa-check";
+                target.style.color = "green";
+                setTimeout(() => {
+                    target.className = originalIcon;
+                    target.style.color = "";
+                }, 1500);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                alert('复制失败!');
+            });
+        }
+
+        async function exportPdf() {
+            showView('processing');
+            spinnerStatusText.textContent = '正在生成PDF...';
+            try {
+                const element = document.getElementById('results-content');
+                const opt = {
+                    margin: 0.5, filename: `合同审核报告-${new Date().toISOString().slice(0,10)}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true, logging: false },
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                };
+                const allDetails = element.querySelectorAll('details');
+                const openStates = new Map();
+                allDetails.forEach((d, i) => { openStates.set(i, d.open); d.open = true; });
+                
+                const mermaidContainer = element.querySelector('#content-mermaid');
+                const svg = mermaidContainer ? mermaidContainer.querySelector('svg') : null;
+                let mermaidImage;
+                if (svg) {
+                    const svgData = new XMLSerializer().serializeToString(svg);
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const img = new Image();
+                    const TARGET_WIDTH = 800;
+                    const svgAspectRatio = svg.height.baseVal.value / svg.width.baseVal.value;
+                    canvas.width = TARGET_WIDTH;
+                    canvas.height = TARGET_WIDTH * svgAspectRatio;
+                    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+                    await new Promise(resolve => {
+                        img.onload = () => {
+                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                            mermaidImage = document.createElement('img');
+                            mermaidImage.src = canvas.toDataURL('image/png');
+                            mermaidImage.style.width = '100%';
+                            mermaidContainer.style.display = 'none';
+                            mermaidContainer.parentNode.insertBefore(mermaidImage, mermaidContainer);
+                            resolve();
+                        };
+                    });
+                }
+                
+                await html2pdf().from(element).set(opt).save();
+                
+                allDetails.forEach((d, i) => { d.open = openStates.get(i); });
+                if (mermaidImage) { mermaidImage.remove(); mermaidContainer.style.display = 'block'; }
+            } finally {
+                showView('results');
+            }
+        }
+
+        function renderModule(key, value) {
+            const mappings = {
+                level: { type: 'level' },
+                mermaid: { type: 'mermaid' },
+                fan_chart: { type: 'echarts' },
+                abstract: { type: 'markdown' }, 
+                point: { type: 'markdown' },
+                output_enterprise: { type: 'markdown' }, 
+                output_basic: { type: 'markdown' },
+                output_business: { type: 'markdown' }, 
+                output_legal: { type: 'markdown' },
+            };
+            if (!mappings[key]) return;
+            const config = mappings[key];
+
+            if (key === 'level') {
+                const container = document.getElementById('content-level-container');
+                if (!container) return;
+                const riskSlug = String(value).includes('高') ? 'high' : String(value).includes('中') ? 'medium' : 'low';
+                const riskIcon = riskSlug === 'high' ? 'fa-shield-virus' : riskSlug === 'medium' ? 'fa-shield-alt' : 'fa-shield-check';
+                container.innerHTML = `
+                    <div class="result-module risk-card risk-${riskSlug}">
+                        <i class="fa-solid ${riskIcon} icon"></i>
+                        <div class="text-content">
+                            <h3>风险等级评估</h3>
+                            <p>${value}</p>
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            let moduleEl = document.getElementById(`module-${key}`);
+            if (!moduleEl) return; // If placeholder doesn't exist, do nothing
+            
+            moduleEl.style.display = 'block';
+            if(moduleEl.tagName === 'DETAILS') {
+                moduleEl.open = false; // Default to closed
+            }
+
+            let container = document.getElementById(`content-${key}`);
+            if (!container) return;
+
+            switch(config.type) {
+                case 'markdown': container.innerHTML = marked.parse(value); break;
+                case 'mermaid':
+                    const cleanMermaidCode = extractCodeFromMarkdown(value);
+                    try {
+                        mermaid.render('mermaid-svg-' + Date.now(), cleanMermaidCode).then(({ svg }) => { container.innerHTML = svg; });
+                    } catch (e) {
+                        console.error("Mermaid渲染失败:", e);
+                        container.innerHTML = `<div class="error-box"><strong>流程图语法错误。</strong><p>${e.message}</p><pre>${cleanMermaidCode}</pre></div>`;
+                    }
+                    break;
+                case 'echarts':
+                    try {
+                        const cleanJsonString = extractCodeFromMarkdown(value);
+                        const chartData = JSON.parse(cleanJsonString);
+                        const transformedData = chartData.map(item => ({ name: item.category, value: item.value }));
+                        
+                        const chart = echarts.init(container);
+                        const option = {
+                            tooltip: { trigger: 'item', formatter: '{a} <br/>{b} : {c} ({d}%)' },
+                            legend: { top: 'bottom', textStyle: { color: '#333' } },
+                            series: [{ name: '风险分布', type: 'pie', radius: [30, 140], center: ['50%', '45%'], roseType: 'area', itemStyle: { borderRadius: 8 }, label: { color: '#333' }, data: transformedData }]
+                        };
+                        chart.setOption(option);
+
+                        // Add listener to resize chart on details toggle
+                        moduleEl.addEventListener('toggle', () => {
+                            if (moduleEl.open) {
+                                setTimeout(() => chart.resize(), 50); // Delay to ensure container is visible
+                            }
+                        });
+
+                    } catch (e) {
+                        console.error("解析或渲染ECharts失败:", e);
+                        container.innerHTML = `<div class="error-box"><strong>图表数据格式错误。</strong><br><pre>${value}</pre></div>`;
+                    }
+                    break;
+            }
+        }
+
+        // --- History Management Functions ---
+        
+        // Initialize IndexedDB
+        async function initHistoryDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('ContractReviewDB', 1);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => resolve(request.result);
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains('history')) {
+                        const store = db.createObjectStore('history', { keyPath: 'id' });
+                        store.createIndex('uploadTime', 'uploadTime', { unique: false });
+                        store.createIndex('fileName', 'fileName', { unique: false });
+                        store.createIndex('riskLevel', 'riskLevel', { unique: false });
+                    }
+                };
+            });
+        }
+
+        // Save history record
+        async function saveHistoryRecord(record) {
+            const db = await initHistoryDB();
+            const transaction = db.transaction(['history'], 'readwrite');
+            const store = transaction.objectStore('history');
+            
+            return new Promise((resolve, reject) => {
+                const request = store.put(record);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Get all history records
+        async function getAllHistoryRecords() {
+            const db = await initHistoryDB();
+            const transaction = db.transaction(['history'], 'readonly');
+            const store = transaction.objectStore('history');
+            
+            return new Promise((resolve, reject) => {
+                const request = store.getAll();
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Delete history record
+        async function deleteHistoryRecord(id) {
+            const db = await initHistoryDB();
+            const transaction = db.transaction(['history'], 'readwrite');
+            const store = transaction.objectStore('history');
+            
+            return new Promise((resolve, reject) => {
+                const request = store.delete(id);
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Calculate file hash
+        async function calculateFileHash(file) {
+            const buffer = await file.arrayBuffer();
+            const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Save current review to history
+        async function saveCurrentReviewToHistory() {
+            if (!originalFileBuffer || !currentReviewResults) {
+                alert('没有可保存的审核记录');
+                return;
+            }
+
+            const file = docInput.files[0];
+            const position = document.getElementById('input_position').value;
+            const text = document.getElementById('input_text').value;
+            const tianyancha = document.querySelector('input[name="tianyancha"]:checked').value === 'true';
+
+            const record = {
+                id: generateUniqueId(),
+                fileName: file.name,
+                uploadTime: new Date().toISOString(),
+                fileSize: file.size,
+                
+                // 保存原始.docx文件
+                originalDocx: {
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    data: originalFileBuffer,
+                    hash: await calculateFileHash(file)
+                },
+                
+                // 保存HTML预览
+                previewHtml: docViewer.innerHTML,
+                
+                input: {
+                    position: position,
+                    text: text,
+                    tianyancha: tianyancha
+                },
+                
+                results: currentReviewResults,
+                tags: [],
+                notes: ""
+            };
+
+            try {
+                await saveHistoryRecord(record);
+                alert('审核记录已保存到历史');
+                loadHistoryRecords();
+            } catch (error) {
+                console.error('保存历史记录失败:', error);
+                alert('保存失败: ' + error.message);
+            }
+        }
+
+        // Generate unique ID
+        function generateUniqueId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        // Load and display history records
+        async function loadHistoryRecords() {
+            try {
+                historyRecords = await getAllHistoryRecords();
+                displayHistoryRecords();
+                updateHistoryStats();
+            } catch (error) {
+                console.error('加载历史记录失败:', error);
+            }
+        }
+
+        // Display history records
+        function displayHistoryRecords() {
+            const filteredRecords = filterHistoryRecords();
+            
+            if (filteredRecords.length === 0) {
+                historyEmpty.style.display = 'block';
+                historyList.innerHTML = '';
+                return;
+            }
+
+            historyEmpty.style.display = 'none';
+            
+            const recordsHtml = filteredRecords.map(record => {
+                const riskLevel = getRiskLevelFromResults(record.results);
+                const riskClass = riskLevel === 'high' ? 'high' : riskLevel === 'medium' ? 'medium' : 'low';
+                const riskText = riskLevel === 'high' ? '高风险' : riskLevel === 'medium' ? '中风险' : '低风险';
+                
+                return `
+                    <div class="history-item" data-id="${record.id}">
+                        <div class="history-item-header">
+                            <div class="history-file-info">
+                                <i class="fa-solid fa-file-word history-file-icon"></i>
+                                <div>
+                                    <div class="history-file-name">${record.fileName}</div>
+                                    <div class="history-file-size">${formatFileSize(record.fileSize)}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="history-meta">
+                            <div class="history-time">${formatTime(record.uploadTime)}</div>
+                            <div class="history-risk ${riskClass}">${riskText}</div>
+                        </div>
+                        <div class="history-actions">
+                            <button class="history-action-btn" onclick="viewReviewResults('${record.id}')" title="查看结果">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                            <button class="history-action-btn" onclick="reReviewFromHistory('${record.id}')" title="重新审核">
+                                <i class="fa-solid fa-rotate-right"></i>
+                            </button>
+                            <button class="history-action-btn" onclick="downloadOriginalFile('${record.id}')" title="下载原文件">
+                                <i class="fa-solid fa-download"></i>
+                            </button>
+                            <button class="history-action-btn" onclick="exportSingleRecord('${record.id}')" title="导出此记录">
+                                <i class="fa-solid fa-file-export"></i>
+                            </button>
+                            <button class="history-action-btn" onclick="deleteHistoryRecord('${record.id}')" title="删除记录">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            historyList.innerHTML = recordsHtml;
+        }
+
+        // Filter history records
+        function filterHistoryRecords() {
+            let filtered = historyRecords;
+
+            // Apply search filter
+            if (currentHistorySearch) {
+                filtered = filtered.filter(record => 
+                    record.fileName.toLowerCase().includes(currentHistorySearch.toLowerCase())
+                );
+            }
+
+            // Apply risk level filter
+            if (currentHistoryFilter !== 'all') {
+                filtered = filtered.filter(record => {
+                    const riskLevel = getRiskLevelFromResults(record.results);
+                    return riskLevel === currentHistoryFilter;
+                });
+            }
+
+            return filtered.sort((a, b) => new Date(b.uploadTime) - new Date(a.uploadTime));
+        }
+
+        // Get risk level from results
+        function getRiskLevelFromResults(results) {
+            if (!results || !results.level) return 'low';
+            const level = String(results.level);
+            return level.includes('高') ? 'high' : level.includes('中') ? 'medium' : 'low';
+        }
+
+        // Update history stats
+        function updateHistoryStats() {
+            const filteredRecords = filterHistoryRecords();
+            historyCount.textContent = filteredRecords.length;
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        // Format time
+        function formatTime(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleString('zh-CN', {
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Re-review from history
+        async function reReviewFromHistory(recordId) {
+            const record = historyRecords.find(r => r.id === recordId);
+            if (!record) return;
+
+            // Restore original file
+            const arrayBuffer = record.originalDocx.data;
+            const blob = new Blob([arrayBuffer], { type: record.originalDocx.type });
+            const file = new File([blob], record.originalDocx.name, { type: record.originalDocx.type });
+
+            // Set file input
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            docInput.files = dataTransfer.files;
+
+            // Restore input parameters
+            document.getElementById('input_position').value = record.input.position || '';
+            document.getElementById('input_text').value = record.input.text || '';
+            document.querySelector(`input[name="tianyancha"][value="${record.input.tianyancha}"]`).checked = true;
+
+            // Update UI
+            fileNameDisplay.textContent = `已选择: ${record.fileName}`;
+            docViewer.innerHTML = record.previewHtml;
+
+            // Close history panel
+            historyPanel.classList.remove('open');
+
+            // Start review
+            setTimeout(() => {
+                runWorkflow();
+            }, 500);
+        }
+
+        // Download original file
+        async function downloadOriginalFile(recordId) {
+            const record = historyRecords.find(r => r.id === recordId);
+            if (!record) return;
+
+            const arrayBuffer = record.originalDocx.data;
+            const blob = new Blob([arrayBuffer], { type: record.originalDocx.type });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = record.originalDocx.name;
+            a.click();
+            
+            URL.revokeObjectURL(url);
+        }
+
+        // Export single record
+        async function exportSingleRecord(recordId) {
+            const record = historyRecords.find(r => r.id === recordId);
+            if (!record) return;
+
+            const zip = new JSZip();
+            
+            // Add record data
+            zip.file('record.json', JSON.stringify(record, null, 2));
+            
+            // Add original document
+            const arrayBuffer = record.originalDocx.data;
+            zip.file(`documents/${record.originalDocx.name}`, arrayBuffer);
+
+            const blob = await zip.generateAsync({ type: 'blob' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `审核记录-${record.fileName}-${new Date().toISOString().slice(0,10)}.zip`;
+            a.click();
+            
+            URL.revokeObjectURL(url);
+        }
+
+        // Export all history
+        async function exportAllHistory() {
+            if (historyRecords.length === 0) {
+                alert('暂无历史记录可导出');
+                return;
+            }
+
+            const zip = new JSZip();
+            
+            // Add all records
+            zip.file('history.json', JSON.stringify(historyRecords, null, 2));
+            
+            // Add all original documents
+            historyRecords.forEach(record => {
+                const arrayBuffer = record.originalDocx.data;
+                zip.file(`documents/${record.originalDocx.name}`, arrayBuffer);
+            });
+
+            const blob = await zip.generateAsync({ type: 'blob' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `合同审核历史-${new Date().toISOString().slice(0,10)}.zip`;
+            a.click();
+            
+            URL.revokeObjectURL(url);
+        }
+
+        // Import history
+        async function importHistory() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.zip';
+            input.onchange = async (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                try {
+                    const zip = await JSZip.loadAsync(file);
+                    
+                    // Read history data
+                    const historyJson = await zip.file('history.json').async('string');
+                    const importedRecords = JSON.parse(historyJson);
+                    
+                    // Import each record
+                    for (const record of importedRecords) {
+                        await saveHistoryRecord(record);
+                    }
+                    
+                    alert(`成功导入 ${importedRecords.length} 条历史记录`);
+                    loadHistoryRecords();
+                } catch (error) {
+                    console.error('导入失败:', error);
+                    alert('导入失败: ' + error.message);
+                }
+            };
+            input.click();
+        }
+
+        // Toggle history panel
+        function toggleHistoryPanel() {
+            historyPanel.classList.toggle('open');
+        }
+
+        // View review results from history
+        async function viewReviewResults(recordId) {
+            const record = historyRecords.find(r => r.id === recordId);
+            if (!record) return;
+
+            // Restore original file for preview
+            const arrayBuffer = record.originalDocx.data;
+            const blob = new Blob([arrayBuffer], { type: record.originalDocx.type });
+            const file = new File([blob], record.originalDocx.name, { type: record.originalDocx.type });
+
+            // Set file input
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            docInput.files = dataTransfer.files;
+
+            // Restore input parameters
+            document.getElementById('input_position').value = record.input.position || '';
+            document.getElementById('input_text').value = record.input.text || '';
+            document.querySelector(`input[name="tianyancha"][value="${record.input.tianyancha}"]`).checked = true;
+
+            // Update UI
+            fileNameDisplay.textContent = `已选择: ${record.fileName}`;
+            docViewer.innerHTML = record.previewHtml;
+
+            // Restore results
+            currentReviewResults = record.results;
+            resetResults();
+            
+            // Render all results
+            for (const [key, value] of Object.entries(record.results)) {
+                renderModule(key, value);
+            }
+
+            // Close history panel and show results
+            historyPanel.classList.remove('open');
+            showView('results');
+        }
+
+        // --- Event Listeners & Initializers ---
+        if (getApiKey()) { apiKeyInput.value = getApiKey(); }
+        
+        docInput.addEventListener('change', handleFileSelect);
+        
+        resultsView.addEventListener('click', (event) => { 
+            const copyBtn = event.target.closest('.copy-btn');
+            if (copyBtn) {
+                handleCopy(copyBtn);
+            }
+        });
+
+        exportPdfBtn.addEventListener('click', exportPdf);
+        settingsBtn.addEventListener('click', toggleSettings);
+        saveApiKeyBtn.addEventListener('click', saveApiKey);
+        submitBtn.addEventListener('click', runWorkflow);
+        newReviewBtn.addEventListener('click', () => {
+            docInput.value = ''; // Clear the file input
+            fileNameDisplay.textContent = '点击或拖拽文件到此处';
+            docViewer.innerHTML = '<h2>请在右侧上传 .docx 合同文件</h2>';
+            showView('action');
+        });
+
+        // History panel event listeners
+        historyToggleBtn.addEventListener('click', toggleHistoryPanel);
+        historySearchInput.addEventListener('input', (e) => {
+            currentHistorySearch = e.target.value;
+            displayHistoryRecords();
+            updateHistoryStats();
+        });
+        
+        historyFilters.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                historyFilters.forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                currentHistoryFilter = e.target.dataset.filter;
+                displayHistoryRecords();
+                updateHistoryStats();
+            });
+        });
+
+        // History action buttons
+        saveToHistoryBtn.addEventListener('click', saveCurrentReviewToHistory);
+        exportHistoryBtn.addEventListener('click', exportAllHistory);
+        importHistoryBtn.addEventListener('click', importHistory);
+
+        // Initialize history records
+        loadHistoryRecords();
+
+        // Expose functions to global scope for onclick handlers
+        window.reReviewFromHistory = reReviewFromHistory;
+        window.viewReviewResults = viewReviewResults;
+        window.downloadOriginalFile = downloadOriginalFile;
+        window.exportSingleRecord = exportSingleRecord;
+        window.deleteHistoryRecord = async (id) => {
+            if (confirm('确定要删除这条历史记录吗？')) {
+                try {
+                    await deleteHistoryRecord(id);
+                    loadHistoryRecords();
+                    alert('删除成功');
+                } catch (error) {
+                    console.error('删除失败:', error);
+                    alert('删除失败: ' + error.message);
+                }
+            }
+        };
+
+        // Initial view
+        showView('action');
+    });
+    </script>
+</body>
+</html>
