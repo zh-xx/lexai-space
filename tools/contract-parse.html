@@ -747,34 +747,27 @@
         <div class="right-panel">
             <div class="app-header">
                 <h1><i class="fa-solid fa-file-lines"></i>合同解析工具</h1>
-                <button class="settings-btn" id="settings-btn">
-                    <i class="fa-solid fa-gear"></i> 配置密钥
-                </button>
             </div>
             
             <div class="settings-panel" id="settings-panel" style="display: none;">
-                <h3><i class="fa-solid fa-cog"></i>API 配置</h3>
+                <h3><i class="fa-solid fa-cog"></i>模型设置</h3>
                 <div class="form-group">
-                    <label for="api-key-input">API 密钥</label>
-                    <div class="label-description">请输入您的扣子API密钥，格式为 pat_...</div>
-                    <input type="password" id="api-key-input" placeholder="pat_...">
+                    <p style="color: var(--text-secondary); font-size: 0.9em; margin-bottom: 15px;">
+                        <i class="fa-solid fa-info-circle"></i>
+                        API设置已移至主框架统一管理，请点击左下角的"模型设置"按钮进行配置。
+                    </p>
+                    <div class="form-group">
+                        <label for="model-select">选择模型</label>
+                        <select id="model-select">
+                            <option value="coze-workflow">Coze 工作流 (在线)</option>
+                            <option value="coze-local-workflow">Coze 工作流 (本地)</option>
+                        </select>
+                        <small style="color: var(--text-secondary); font-size: 0.9em; margin-top: 5px; display: block;">
+                            选择使用在线或本地部署的Coze工作流
+                        </small>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="workflow-id-input">Workflow ID</label>
-                    <div class="label-description">请输入您的合同解析工作流ID</div>
-                    <input type="text" id="workflow-id-input" placeholder="工作流ID">
-                </div>
-                <div class="form-group">
-                    <label for="upload-api-url-input">上传API地址</label>
-                    <div class="label-description">如使用在线版扣子，无需修改，默认：<br><code>https://api.coze.cn/v1/files/upload</code></div>
-                    <input type="text" id="upload-api-url-input" placeholder="https://api.coze.cn/v1/files/upload">
-                </div>
-                <div class="form-group">
-                    <label for="stream-run-api-url-input">工作流API地址</label>
-                    <div class="label-description">如使用在线版扣子，无需修改，默认：<br><code>https://api.coze.cn/v1/workflow/stream_run</code></div>
-                    <input type="text" id="stream-run-api-url-input" placeholder="https://api.coze.cn/v1/workflow/stream_run">
-                </div>
-                <button class="save-btn" id="save-api-key-btn"><i class="fa-solid fa-save"></i> 保存并关闭</button>
+                <button class="save-btn" id="close-settings-btn"><i class="fa-solid fa-times"></i> 关闭</button>
             </div>
 
             <div class="action-card">
@@ -827,6 +820,29 @@
                 this.init();
             }
 
+            // --- 统一设置支持函数 ---
+            isUsingUnifiedSettings() {
+                return localStorage.getItem('use_unified_settings') === 'true';
+            }
+
+            getApiKey() { 
+                if (this.isUsingUnifiedSettings()) {
+                    const currentModel = localStorage.getItem('contract-parse_model') || 'coze-workflow';
+                    if (currentModel === 'coze-local-workflow') {
+                        return ''; // 本地部署不需要API密钥
+                    }
+                    return localStorage.getItem('coze_api_key') || '';
+                }
+                return localStorage.getItem('contract-parse-api-key'); 
+            }
+
+            getCurrentModel() {
+                if (this.isUsingUnifiedSettings()) {
+                    return localStorage.getItem('contract-parse_model') || 'coze-workflow';
+                }
+                return localStorage.getItem('selectedModel') || 'coze-workflow';
+            }
+
             init() {
                 this.bindEvents();
             }
@@ -870,21 +886,17 @@
                 });
 
                 // 设置面板功能
-                const settingsBtn = document.getElementById('settings-btn');
                 const settingsPanel = document.getElementById('settings-panel');
-                const saveApiKeyBtn = document.getElementById('save-api-key-btn');
 
                 // 加载保存的设置
                 this.loadSettings();
 
-                // 设置按钮点击事件
-                settingsBtn.addEventListener('click', () => {
-                    this.toggleSettings();
-                });
 
-                // 保存设置按钮点击事件
-                saveApiKeyBtn.addEventListener('click', () => {
-                    this.saveSettings();
+
+                // 关闭设置按钮点击事件
+                const closeSettingsBtn = document.getElementById('close-settings-btn');
+                closeSettingsBtn.addEventListener('click', () => {
+                    this.toggleSettings();
                 });
             }
 
@@ -894,28 +906,18 @@
             }
 
             loadSettings() {
-                const apiKeyInput = document.getElementById('api-key-input');
-                const workflowIdInput = document.getElementById('workflow-id-input');
-                const uploadApiUrlInput = document.getElementById('upload-api-url-input');
-                const streamRunApiUrlInput = document.getElementById('stream-run-api-url-input');
-
-                apiKeyInput.value = localStorage.getItem('contract-parse-api-key') || '';
-                workflowIdInput.value = localStorage.getItem('contract-parse-workflow-id') || '';
-                uploadApiUrlInput.value = localStorage.getItem('contract-parse-upload-api-url') || 'https://api.coze.cn/v1/files/upload';
-                streamRunApiUrlInput.value = localStorage.getItem('contract-parse-stream-run-api-url') || 'https://api.coze.cn/v1/workflow/stream_run';
+                const modelSelect = document.getElementById('model-select');
+                if (this.isUsingUnifiedSettings()) {
+                    const currentModel = this.getCurrentModel();
+                    modelSelect.value = currentModel;
+                }
             }
 
             saveSettings() {
-                const apiKeyInput = document.getElementById('api-key-input');
-                const workflowIdInput = document.getElementById('workflow-id-input');
-                const uploadApiUrlInput = document.getElementById('upload-api-url-input');
-                const streamRunApiUrlInput = document.getElementById('stream-run-api-url-input');
-
-                localStorage.setItem('contract-parse-api-key', apiKeyInput.value);
-                localStorage.setItem('contract-parse-workflow-id', workflowIdInput.value);
-                localStorage.setItem('contract-parse-upload-api-url', uploadApiUrlInput.value);
-                localStorage.setItem('contract-parse-stream-run-api-url', streamRunApiUrlInput.value);
-
+                const modelSelect = document.getElementById('model-select');
+                if (this.isUsingUnifiedSettings()) {
+                    localStorage.setItem('contract-parse_model', modelSelect.value);
+                }
                 this.showSuccess('设置已保存');
                 this.toggleSettings();
             }
@@ -954,11 +956,18 @@
                 }
 
                 // 检查API配置
-                const apiKey = localStorage.getItem('contract-parse-api-key');
-                const workflowId = localStorage.getItem('contract-parse-workflow-id');
+                const apiKey = this.getApiKey();
+                const workflowId = this.isUsingUnifiedSettings() 
+                    ? (this.getCurrentModel() === 'coze-local-workflow' 
+                        ? localStorage.getItem('parse_local_workflow_id') 
+                        : localStorage.getItem('parse_workflow_id'))
+                    : localStorage.getItem('contract-parse-workflow-id');
                 
-                if (!apiKey) {
-                    this.showError('请先点击【配置密钥】按钮，设置您的API密钥');
+                const currentModel = this.getCurrentModel();
+                
+                // 检查API密钥（本地部署不需要）
+                if (currentModel !== 'coze-local-workflow' && !apiKey) {
+                    this.showError('请先在主框架的"模型设置"中配置您的API密钥');
                     return;
                 }
                 if (!workflowId) {
@@ -989,10 +998,27 @@
             }
 
             async callParseAPI(contractText, supplementText) {
-                const apiKey = localStorage.getItem('contract-parse-api-key');
-                const workflowId = localStorage.getItem('contract-parse-workflow-id');
-                const uploadApiUrl = localStorage.getItem('contract-parse-upload-api-url') || 'https://api.coze.cn/v1/files/upload';
-                const streamRunApiUrl = localStorage.getItem('contract-parse-stream-run-api-url') || 'https://api.coze.cn/v1/workflow/stream_run';
+                const isUsingUnifiedSettings = localStorage.getItem('use_unified_settings') === 'true';
+                const apiKey = isUsingUnifiedSettings 
+                    ? (localStorage.getItem('contract-parse_model') === 'coze-local-workflow' 
+                        ? '' // 本地部署不需要API密钥
+                        : localStorage.getItem('coze_api_key'))
+                    : localStorage.getItem('contract-parse-api-key');
+                const workflowId = isUsingUnifiedSettings 
+                    ? (localStorage.getItem('contract-parse_model') === 'coze-local-workflow' 
+                        ? localStorage.getItem('parse_local_workflow_id') 
+                        : localStorage.getItem('parse_workflow_id'))
+                    : localStorage.getItem('contract-parse-workflow-id');
+                const uploadApiUrl = isUsingUnifiedSettings 
+                    ? (localStorage.getItem('contract-parse_model') === 'coze-local-workflow' 
+                        ? `${localStorage.getItem('coze_local_url') || 'http://localhost:8080'}/api/v1/files/upload`
+                        : 'https://api.coze.cn/v1/files/upload')
+                    : (localStorage.getItem('contract-parse-upload-api-url') || 'https://api.coze.cn/v1/files/upload');
+                const streamRunApiUrl = isUsingUnifiedSettings 
+                    ? (localStorage.getItem('contract-parse_model') === 'coze-local-workflow' 
+                        ? `${localStorage.getItem('coze_local_url') || 'http://localhost:8080'}/api/v1/workflow/stream_run`
+                        : 'https://api.coze.cn/v1/workflow/stream_run')
+                    : (localStorage.getItem('contract-parse-stream-run-api-url') || 'https://api.coze.cn/v1/workflow/stream_run');
 
                 try {
                     console.log('开始处理文件上传...');
@@ -1028,13 +1054,17 @@
                     
                     console.log('使用合同审核格式，请求体:', body);
                     
+                    const headers = {
+                        'Content-Type': 'application/json',
+                        'Accept': 'text/event-stream'
+                    };
+                    if (apiKey) {
+                        headers['Authorization'] = `Bearer ${apiKey}`;
+                    }
+                    
                     const response = await fetch(streamRunApiUrl, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${apiKey}`,
-                            'Accept': 'text/event-stream'
-                        },
+                        headers: headers,
                         body: JSON.stringify(body)
                     });
 
@@ -1067,13 +1097,16 @@
                 console.log('上传文件:', this.selectedFile.name);
                 console.log('上传到:', uploadApiUrl);
 
-                const response = await fetch(uploadApiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: formData
-                });
+                                    const headers = {};
+                    if (apiKey) {
+                        headers['Authorization'] = `Bearer ${apiKey}`;
+                    }
+                    
+                    const response = await fetch(uploadApiUrl, {
+                        method: 'POST',
+                        headers: headers,
+                        body: formData
+                    });
 
                 if (!response.ok) {
                     throw new Error(`文件上传失败: ${response.status}`);

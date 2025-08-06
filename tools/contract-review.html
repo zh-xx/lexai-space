@@ -6,7 +6,7 @@
     <title>智能合同审核工具</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
@@ -1029,33 +1029,28 @@
                         <div class="more-actions-panel" id="more-actions-panel">
                             <button id="export-history-btn-more"><i class="fa-solid fa-download"></i> 导出历史</button>
                             <button id="import-history-btn-more"><i class="fa-solid fa-upload"></i> 导入历史</button>
-                            <button id="settings-btn-more"><i class="fa-solid fa-gear"></i> 配置密钥</button>
                         </div>
                     </div>
                 </div>
                 <div class="settings-panel" id="settings-panel" style="display: none;">
-                    <h3>API 配置</h3>
+                    <h3>模型设置</h3>
                     <div class="form-group">
-                        <label for="api-key-input">API 密钥</label>
-                        <div class="label-description">请输入您的扣子API密钥，格式为 pat_...</div>
-                        <input type="password" id="api-key-input" placeholder="pat_...">
+                        <p style="color: var(--text-secondary); font-size: 0.9em; margin-bottom: 15px;">
+                            <i class="fa-solid fa-info-circle"></i>
+                            API设置已移至主框架统一管理，请点击左下角的"模型设置"按钮进行配置。
+                        </p>
+                        <div class="form-group">
+                            <label for="model-select">选择模型</label>
+                            <select id="model-select">
+                                <option value="coze-workflow">Coze 工作流 (在线)</option>
+                                <option value="coze-local-workflow">Coze 工作流 (本地)</option>
+                            </select>
+                            <small style="color: var(--text-secondary); font-size: 0.9em; margin-top: 5px; display: block;">
+                                选择使用在线或本地部署的Coze工作流
+                            </small>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="workflow-id-input">Workflow ID</label>
-                        <div class="label-description">请输入您的工作流ID</div>
-                        <input type="text" id="workflow-id-input" placeholder="工作流ID">
-                    </div>
-                    <div class="form-group">
-                        <label for="upload-api-url-input">上传API地址</label>
-                        <div class="label-description">如使用在线版扣子，无需修改，默认：<br><code>https://api.coze.cn/v1/files/upload</code></div>
-                        <input type="text" id="upload-api-url-input" placeholder="https://api.coze.cn/v1/files/upload">
-                    </div>
-                    <div class="form-group">
-                        <label for="stream-run-api-url-input">工作流API地址</label>
-                        <div class="label-description">如使用在线版扣子，无需修改，默认：<br><code>https://api.coze.cn/v1/workflow/stream_run</code></div>
-                        <input type="text" id="stream-run-api-url-input" placeholder="https://api.coze.cn/v1/workflow/stream_run">
-                    </div>
-                    <button id="save-api-key-btn"><i class="fa-solid fa-save"></i> 保存并关闭</button>
+                    <button id="close-settings-btn"><i class="fa-solid fa-times"></i> 关闭</button>
                 </div>
                 <div class="action-card">
                     <div class="form-group">
@@ -1200,12 +1195,29 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // 绑定API地址输入框
-        const uploadApiUrlInput = document.getElementById('upload-api-url-input');
-        const streamRunApiUrlInput = document.getElementById('stream-run-api-url-input');
-        // 初始化API地址输入框
-        if (localStorage.getItem('uploadApiUrl')) uploadApiUrlInput.value = localStorage.getItem('uploadApiUrl');
-        if (localStorage.getItem('streamRunApiUrl')) streamRunApiUrlInput.value = localStorage.getItem('streamRunApiUrl');
+        // --- 统一设置支持函数 ---
+        function isUsingUnifiedSettings() {
+            return localStorage.getItem('use_unified_settings') === 'true';
+        }
+
+        function getApiKey() { 
+            if (isUsingUnifiedSettings()) {
+                const currentModel = localStorage.getItem('contract-review_model') || 'coze-workflow';
+                if (currentModel === 'coze-local-workflow') {
+                    return ''; // 本地部署不需要API密钥
+                }
+                return localStorage.getItem('coze_api_key') || '';
+            }
+            return localStorage.getItem('cozeApiKey'); 
+        }
+
+        function getCurrentModel() {
+            if (isUsingUnifiedSettings()) {
+                return localStorage.getItem('contract-review_model') || 'coze-workflow';
+            }
+            return localStorage.getItem('selectedModel') || 'coze-workflow';
+        }
+
         // --- Initialize Libraries ---
         mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' });
 
@@ -1222,9 +1234,14 @@
         const mainContainer = document.querySelector('.main-container');
         const docInput = document.getElementById('input_doc');
         const docViewer = document.getElementById('document-viewer');
-        const apiKeyInput = document.getElementById('api-key-input');
         const settingsPanel = document.getElementById('settings-panel');
-        const workflowIdInput = document.getElementById('workflow-id-input');
+        const modelSelect = document.getElementById('model-select');
+        
+        // 初始化模型选择
+        if (modelSelect && isUsingUnifiedSettings()) {
+            const currentModel = getCurrentModel();
+            modelSelect.value = currentModel;
+        }
         
         const actionView = document.getElementById('action-view');
         const processingView = document.getElementById('processing-view');
@@ -1233,7 +1250,7 @@
         const progressFill = document.getElementById('progress-fill');
 
         const submitBtn = document.getElementById('submitBtn');
-        const saveApiKeyBtn = document.getElementById('save-api-key-btn');
+        const closeSettingsBtn = document.getElementById('close-settings-btn');
         const fileNameDisplay = document.getElementById('file-name-display');
         
         const resultsContent = document.getElementById('results-content');
@@ -1524,47 +1541,58 @@
         function toggleSettings() { settingsPanel.style.display = settingsPanel.style.display === 'block' ? 'none' : 'block'; }
         
         function saveApiKey() {
-            // 新增：保存API地址
-            if (uploadApiUrlInput.value) localStorage.setItem('uploadApiUrl', uploadApiUrlInput.value);
-            else localStorage.removeItem('uploadApiUrl');
-            if (streamRunApiUrlInput.value) localStorage.setItem('streamRunApiUrl', streamRunApiUrlInput.value);
-            else localStorage.removeItem('streamRunApiUrl');
-            let isValid = true;
-            if (!apiKeyInput.value || !apiKeyInput.value.startsWith('pat_')) {
-                alert('请输入正确的API密钥，它应该以 "pat_" 开头。');
-                isValid = false;
-            }
-            if (!workflowIdInput.value) {
-                alert('请输入Workflow ID。');
-                isValid = false;
-            }
-            
-            if (isValid) {
-                localStorage.setItem('cozeApiKey', apiKeyInput.value);
-                localStorage.setItem('workflowId', workflowIdInput.value);
-                alert('配置已保存！');
-                toggleSettings();
-            }
+            // 统一设置模式下，API配置已移至主框架
+            alert('API设置已移至主框架统一管理，请点击左下角的"模型设置"按钮进行配置。');
+            toggleSettings();
         }
 
-        function getApiKey() { return localStorage.getItem('cozeApiKey'); }
+        // 检查是否使用统一设置
 
         // 获取API地址，优先用用户自定义
         function getUploadApiUrl() {
+            if (isUsingUnifiedSettings()) {
+                const currentModel = localStorage.getItem('contract-review_model') || 'coze-workflow';
+                if (currentModel === 'coze-local-workflow') {
+                    return `${localStorage.getItem('coze_local_url') || 'http://localhost:8080'}/api/v1/files/upload`;
+                }
+                return 'https://api.coze.cn/v1/files/upload';
+            }
             return localStorage.getItem('uploadApiUrl') || DEFAULT_UPLOAD_API_URL;
         }
         function getStreamRunApiUrl() {
+            if (isUsingUnifiedSettings()) {
+                const currentModel = localStorage.getItem('contract-review_model') || 'coze-workflow';
+                if (currentModel === 'coze-local-workflow') {
+                    return `${localStorage.getItem('coze_local_url') || 'http://localhost:8080'}/api/v1/workflow/stream_run`;
+                }
+                return 'https://api.coze.cn/v1/workflow/stream_run';
+            }
             return localStorage.getItem('streamRunApiUrl') || DEFAULT_STREAM_RUN_API_URL;
         }
         
         function getWorkflowId() { 
+            if (isUsingUnifiedSettings()) {
+                // 检查是否使用本地部署
+                const currentModel = localStorage.getItem('contract-review_model') || 'coze-workflow';
+                if (currentModel === 'coze-local-workflow') {
+                    return localStorage.getItem('review_local_workflow_id') || DEFAULT_WORKFLOW_ID;
+                } else {
+                    return localStorage.getItem('review_workflow_id') || DEFAULT_WORKFLOW_ID;
+                }
+            }
             return localStorage.getItem('workflowId') || DEFAULT_WORKFLOW_ID; 
         }
         
         async function runWorkflow() {
             const apiKey = getApiKey();
             const workflowId = getWorkflowId();
-            if (!apiKey) { alert("请先点击【配置密钥】按钮，设置您的API密钥。"); return; }
+            const currentModel = localStorage.getItem('contract-review_model') || 'coze-workflow';
+            
+            // 检查API密钥（本地部署不需要）
+            if (currentModel !== 'coze-local-workflow' && !apiKey) { 
+                alert("请先在主框架的【模型设置】中配置您的API密钥。"); 
+                return; 
+            }
             if (!workflowId) { alert("请先设置Workflow ID。"); return; }
             const docFile = docInput.files[0];
             if (!docFile) { alert("请必须上传一份合同文档！"); return; }
@@ -1622,7 +1650,13 @@
         async function uploadFile(file, apiKey) {
             const formData = new FormData();
             formData.append('file', file);
-            const response = await fetch(getUploadApiUrl(), { method: 'POST', headers: { 'Authorization': `Bearer ${apiKey}` }, body: formData });
+            
+            const headers = {};
+            if (apiKey) {
+                headers['Authorization'] = `Bearer ${apiKey}`;
+            }
+            
+            const response = await fetch(getUploadApiUrl(), { method: 'POST', headers: headers, body: formData });
             if (!response.ok) {
                 let errorMsg = `HTTP状态码: ${response.status}`;
                 try { errorMsg = `文件上传失败: ${(await response.json()).msg || response.statusText}`; } catch (e) {}
@@ -1646,7 +1680,16 @@
                 ...(text && { [TEXT_INPUT_VARIABLE_NAME]: text }),
             };
             const body = { workflow_id: workflowId, parameters: parameters };
-            const response = await fetch(getStreamRunApiUrl(), { method: 'POST', headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json', 'Accept': 'text/event-stream' }, body: JSON.stringify(body) });
+            
+            const headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'text/event-stream'
+            };
+            if (apiKey) {
+                headers['Authorization'] = `Bearer ${apiKey}`;
+            }
+            
+            const response = await fetch(getStreamRunApiUrl(), { method: 'POST', headers: headers, body: JSON.stringify(body) });
             if (!response.ok) { throw new Error(`启动工作流失败，状态码: ${response.status}`); }
             
             const reader = response.body.getReader();
@@ -2320,8 +2363,6 @@
         }
 
         // --- Event Listeners & Initializers ---
-        if (getApiKey()) { apiKeyInput.value = getApiKey(); }
-        if (getWorkflowId()) { workflowIdInput.value = getWorkflowId(); }
         
         docInput.addEventListener('change', handleFileSelect);
         
@@ -2332,7 +2373,9 @@
             }
         });
 
-        saveApiKeyBtn.addEventListener('click', saveApiKey);
+        closeSettingsBtn.addEventListener('click', () => {
+            settingsPanel.style.display = 'none';
+        });
         submitBtn.addEventListener('click', runWorkflow);
 
         // History panel event listeners
@@ -2415,9 +2458,7 @@
         if (document.getElementById('import-history-btn-more')) {
             document.getElementById('import-history-btn-more').addEventListener('click', importHistory);
         }
-        if (document.getElementById('settings-btn-more')) {
-            document.getElementById('settings-btn-more').addEventListener('click', toggleSettings);
-        }
+
         if (document.getElementById('export-pdf-btn-more')) {
             document.getElementById('export-pdf-btn-more').addEventListener('click', exportPdf);
         }

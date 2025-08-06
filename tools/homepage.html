@@ -435,7 +435,7 @@
                     <h2 id="chat-title">新建对话</h2>
                     <div class="model-indicator" id="model-indicator">使用模型: Gemini 2.5 Pro | 点击标题可编辑</div>
                 </div>
-                <button class="settings-btn" id="settings-btn"><i class="fa-solid fa-gear"></i> 设置</button>
+
             </header>
             <div class="message-area" id="message-area">
                 <!-- Messages will be appended here -->
@@ -470,36 +470,7 @@
         </main>
     </div>
 
-    <!-- Settings Modal -->
-    <div class="modal-overlay" id="settings-modal">
-        <div class="modal">
-            <h3>设置</h3>
-            <div class="form-group">
-                <label for="api-key-input">Gemini API 密钥</label>
-                <input type="password" id="api-key-input" placeholder="请输入您的 Gemini API Key">
-            </div>
-            <div class="form-group">
-                <label for="model-select">选择模型</label>
-                <select id="model-select">
-                    <option value="gemini-2.5-pro">Gemini 2.5 Pro (最新，最强大)</option>
-                    <option value="gemini-2.5-flash">Gemini 2.5 Flash (最新，性价比高)</option>
-                    <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite (最新，成本效益)</option>
-                    <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash</option>
-                    <option value="gemini-2.0-pro-exp">Gemini 2.0 Pro</option>
-                    <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-                    <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-                    <option value="gemini-1.0-pro">Gemini 1.0 Pro</option>
-                </select>
-                <small style="color: var(--text-secondary); font-size: 0.9em; margin-top: 5px; display: block;">
-                    推荐使用Gemini 2.5系列，这是Google最新最强大的模型，支持思考功能和多模态理解
-                </small>
-            </div>
-            <div class="modal-actions">
-                <button id="cancel-settings-btn">取消</button>
-                <button class="save-settings-btn" id="save-settings-btn">保存</button>
-            </div>
-        </div>
-    </div>
+
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -516,12 +487,7 @@
         const messageForm = document.getElementById('message-form');
         const messageInput = document.getElementById('message-input');
         const sendBtn = document.getElementById('send-btn');
-        const settingsBtn = document.getElementById('settings-btn');
-        const settingsModal = document.getElementById('settings-modal');
-        const apiKeyInput = document.getElementById('api-key-input');
-        const modelSelect = document.getElementById('model-select');
-        const saveSettingsBtn = document.getElementById('save-settings-btn');
-        const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
+
         const modelIndicator = document.getElementById('model-indicator');
         const attachBtn = document.getElementById('attach-btn');
         const fileUploadArea = document.getElementById('file-upload-area');
@@ -533,6 +499,54 @@
         let currentConversationId = null;
         let isThinking = false;
         let attachedFiles = [];
+
+        // --- 统一设置支持函数 ---
+        function isUsingUnifiedSettings() {
+            return localStorage.getItem('use_unified_settings') === 'true';
+        }
+
+        function getApiKey() { 
+            if (isUsingUnifiedSettings()) {
+                const selectedModel = getCurrentModel();
+                // 根据模型获取对应的API密钥
+                switch (selectedModel.split('-')[0]) {
+                    case 'gemini':
+                        return localStorage.getItem('google_api_key') || '';
+                    case 'gpt':
+                        return localStorage.getItem('openai_api_key') || '';
+                    case 'claude':
+                        return localStorage.getItem('anthropic_api_key') || '';
+                    case 'deepseek':
+                        return localStorage.getItem('deepseek_api_key') || '';
+                    case 'qwen':
+                        return localStorage.getItem('qwen_api_key') || '';
+                    case 'kimi':
+                        return localStorage.getItem('kimi_api_key') || '';
+                    case 'chatglm':
+                        return localStorage.getItem('chatglm_api_key') || '';
+                    case 'llama':
+                    case 'qwen2':
+                    case 'deepseek-coder':
+                    case 'codellama':
+                    case 'mistral':
+                    case 'mixtral':
+                    case 'phi':
+                        return ''; // Ollama不需要API密钥
+                    default:
+                        return localStorage.getItem('google_api_key') || '';
+                }
+            }
+            return localStorage.getItem('geminiApiKey'); 
+        }
+
+        function getCurrentModel() {
+            if (isUsingUnifiedSettings()) {
+                return localStorage.getItem('ai-chat_model') || 'gemini-2.5-pro';
+            }
+            return localStorage.getItem('selectedModel') || 'gemini-2.5-pro';
+        }
+
+
 
         // --- Database Functions ---
         function initDB() {
@@ -738,9 +752,9 @@
             const userInput = messageInput.value.trim();
             if (!userInput && attachedFiles.length === 0 || isThinking) return;
 
-            const apiKey = localStorage.getItem('geminiApiKey');
+            const apiKey = getApiKey();
             if (!apiKey) {
-                alert('请先在设置中配置您的Gemini API密钥。');
+                alert('请先在主框架的"模型设置"中配置您的API密钥。');
                 return;
             }
 
@@ -812,7 +826,7 @@
             showThinkingIndicator();
             
             try {
-                const modelResponse = await callGeminiAPI(conversation.messages);
+                const modelResponse = await callAIAPI(conversation.messages);
                 const modelMessage = { role: 'model', parts: [{ text: modelResponse }] };
                 conversation.messages.push(modelMessage);
                 
@@ -848,13 +862,51 @@
             }
         }
 
-        async function callGeminiAPI(messages) {
-            const apiKey = localStorage.getItem('geminiApiKey');
-            const selectedModel = localStorage.getItem('geminiModel') || 'gemini-2.5-pro';
-            // 使用选择的Gemini模型
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`;
+        async function callAIAPI(messages) {
+            const apiKey = getApiKey();
+            const selectedModel = getCurrentModel();
             
-            // Gemini API expects alternating user/model roles.
+            try {
+                // 获取模型配置
+                const response = await fetch('/config/models.json');
+                const config = await response.json();
+                const modelConfig = config.models[selectedModel];
+                
+                if (!modelConfig) {
+                    throw new Error(`未找到模型配置: ${selectedModel}`);
+                }
+                
+                // 根据不同的提供商调用不同的API
+                switch (modelConfig.provider) {
+                    case 'google':
+                        return await callGoogleAPI(messages, selectedModel, apiKey);
+                    case 'openai':
+                        return await callOpenAIAPI(messages, selectedModel, apiKey);
+                    case 'anthropic':
+                        return await callAnthropicAPI(messages, selectedModel, apiKey);
+                    case 'deepseek':
+                        return await callDeepSeekAPI(messages, selectedModel, apiKey);
+                    case 'qwen':
+                        return await callQwenAPI(messages, selectedModel, apiKey);
+                    case 'kimi':
+                        return await callKimiAPI(messages, selectedModel, apiKey);
+                    case 'chatglm':
+                        return await callChatGLMAPI(messages, selectedModel, apiKey);
+                    case 'ollama':
+                        return await callOllamaAPI(messages, selectedModel, apiKey);
+                    default:
+                        throw new Error(`不支持的提供商: ${modelConfig.provider}`);
+                }
+            } catch (error) {
+                console.error('API调用失败:', error);
+                throw error;
+            }
+        }
+
+        // Google Gemini API
+        async function callGoogleAPI(messages, model, apiKey) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            
             const contents = messages.map(msg => ({
                 role: msg.role,
                 parts: msg.parts
@@ -868,48 +920,232 @@
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error?.message || 'API请求失败');
+                throw new Error(errorData.error?.message || 'Google API请求失败');
             }
 
             const data = await response.json();
             return data.candidates[0].content.parts[0].text;
         }
 
-        // --- Settings ---
-        function toggleSettingsModal(show) {
-            settingsModal.style.display = show ? 'flex' : 'none';
-            if (show) {
-                apiKeyInput.value = localStorage.getItem('geminiApiKey') || '';
-                modelSelect.value = localStorage.getItem('geminiModel') || 'gemini-2.5-pro';
+        // OpenAI API
+        async function callOpenAIAPI(messages, model, apiKey) {
+            const url = 'https://api.openai.com/v1/chat/completions';
+            
+            const openAIMessages = messages.map(msg => ({
+                role: msg.role === 'user' ? 'user' : 'assistant',
+                content: msg.parts[0].text
+            }));
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: openAIMessages,
+                    max_tokens: 4000
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || 'OpenAI API请求失败');
             }
+
+            const data = await response.json();
+            return data.choices[0].message.content;
         }
 
-        async function saveSettings() {
-            const apiKey = apiKeyInput.value.trim();
-            const selectedModel = modelSelect.value;
-            if (apiKey) {
-                localStorage.setItem('geminiApiKey', apiKey);
-                localStorage.setItem('geminiModel', selectedModel);
-                
-                // 测试API连接
-                try {
-                    const testUrl = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}?key=${apiKey}`;
-                    const response = await fetch(testUrl);
-                    if (response.ok) {
-                        alert('设置已保存，模型连接正常！');
-                    } else {
-                        alert('设置已保存，但模型可能不可用，请尝试其他模型。');
-                    }
-                } catch (error) {
-                    alert('设置已保存，但无法验证模型可用性。');
-                }
-                
-                toggleSettingsModal(false);
-                updateModelIndicator();
-            } else {
-                alert('请输入有效的API密钥。');
+        // Anthropic Claude API
+        async function callAnthropicAPI(messages, model, apiKey) {
+            const url = 'https://api.anthropic.com/v1/messages';
+            
+            const claudeMessages = messages.map(msg => ({
+                role: msg.role === 'user' ? 'user' : 'assistant',
+                content: msg.parts[0].text
+            }));
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-api-key': apiKey,
+                    'anthropic-version': '2023-06-01'
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: claudeMessages,
+                    max_tokens: 4000
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || 'Anthropic API请求失败');
             }
+
+            const data = await response.json();
+            return data.content[0].text;
         }
+
+        // 其他API调用函数（简化版本）
+        async function callDeepSeekAPI(messages, model, apiKey) {
+            const url = 'https://api.deepseek.com/v1/chat/completions';
+            
+            const deepSeekMessages = messages.map(msg => ({
+                role: msg.role === 'user' ? 'user' : 'assistant',
+                content: msg.parts[0].text
+            }));
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: deepSeekMessages,
+                    max_tokens: 4000
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || 'DeepSeek API请求失败');
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content;
+        }
+
+        async function callQwenAPI(messages, model, apiKey) {
+            const url = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation';
+            
+            const qwenMessages = messages.map(msg => ({
+                role: msg.role === 'user' ? 'user' : 'assistant',
+                content: msg.parts[0].text
+            }));
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: model,
+                    input: {
+                        messages: qwenMessages
+                    },
+                    parameters: {
+                        max_tokens: 4000
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || 'Qwen API请求失败');
+            }
+
+            const data = await response.json();
+            return data.output.choices[0].message.content;
+        }
+
+        async function callKimiAPI(messages, model, apiKey) {
+            const url = 'https://api.moonshot.cn/v1/chat/completions';
+            
+            const kimiMessages = messages.map(msg => ({
+                role: msg.role === 'user' ? 'user' : 'assistant',
+                content: msg.parts[0].text
+            }));
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: kimiMessages,
+                    max_tokens: 4000
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || 'Kimi API请求失败');
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content;
+        }
+
+        async function callChatGLMAPI(messages, model, apiKey) {
+            const url = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+            
+            const chatGLMMessages = messages.map(msg => ({
+                role: msg.role === 'user' ? 'user' : 'assistant',
+                content: msg.parts[0].text
+            }));
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: chatGLMMessages,
+                    max_tokens: 4000
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || 'ChatGLM API请求失败');
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content;
+        }
+
+        async function callOllamaAPI(messages, model, apiKey) {
+            const ollamaUrl = localStorage.getItem('ollama_url') || 'http://localhost:11434';
+            const url = `${ollamaUrl}/api/chat`;
+            
+            const ollamaMessages = messages.map(msg => ({
+                role: msg.role === 'user' ? 'user' : 'assistant',
+                content: msg.parts[0].text
+            }));
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: ollamaMessages,
+                    stream: false
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || 'Ollama API请求失败');
+            }
+
+            const data = await response.json();
+            return data.message.content;
+        }
+
+
 
         // --- Initialization and Event Listeners ---
         async function loadAndRenderHistory() {
@@ -924,9 +1160,7 @@
 
         messageForm.addEventListener('submit', handleFormSubmit);
         newChatBtn.addEventListener('click', startNewChat);
-        settingsBtn.addEventListener('click', () => toggleSettingsModal(true));
-        cancelSettingsBtn.addEventListener('click', () => toggleSettingsModal(false));
-        saveSettingsBtn.addEventListener('click', saveSettings);
+
         messageInput.addEventListener('input', adjustTextareaHeight);
         messageInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
