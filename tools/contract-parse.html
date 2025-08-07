@@ -830,7 +830,7 @@
                     const currentWorkflow = localStorage.getItem('contract_parse_workflow') || '';
                     
                     if (currentWorkflow === 'coze-local') {
-                        return ''; // 本地部署不需要API密钥
+                        return localStorage.getItem('coze_local_api_key') || ''; // 本地部署可选择配置API密钥
                     } else if (currentWorkflow === 'coze-online') {
                         return localStorage.getItem('coze_online_api_key') || '';
                     } else {
@@ -991,7 +991,7 @@
                         : localStorage.getItem('coze_online_parse_workflow_id'))
                     : localStorage.getItem('contract-parse-workflow-id');
                 
-                // 检查API密钥（本地部署不需要）
+                // 检查API密钥（在线版需要，本地版可选）
                 if (currentWorkflow === 'coze-online' && !apiKey) {
                     this.showError('请先在主框架的"模型设置"中配置您的API密钥');
                     return;
@@ -1029,7 +1029,7 @@
                 
                 const apiKey = isUsingUnifiedSettings 
                     ? (currentWorkflow === 'coze-local' 
-                        ? '' // 本地部署不需要API密钥
+                        ? localStorage.getItem('coze_local_api_key') || '' // 本地部署可选择配置API密钥
                         : localStorage.getItem('coze_online_api_key'))
                     : localStorage.getItem('contract-parse-api-key');
                 const workflowId = isUsingUnifiedSettings 

@@ -1205,7 +1205,7 @@
                 const currentWorkflow = localStorage.getItem('contract_review_workflow') || '';
                 
                 if (currentWorkflow === 'coze-local') {
-                    return ''; // 本地部署不需要API密钥
+                    return localStorage.getItem('coze_local_api_key') || ''; // 本地部署可选择配置API密钥
                 } else if (currentWorkflow === 'coze-online') {
                     return localStorage.getItem('coze_online_api_key') || '';
                 } else {
@@ -1621,7 +1621,7 @@
             const workflowId = getWorkflowId();
             const currentWorkflow = localStorage.getItem('contract_review_workflow') || '';
             
-            // 检查API密钥（本地部署不需要）
+            // 检查API密钥（在线版需要，本地版可选）
             if (currentWorkflow === 'coze-online' && !apiKey) { 
                 alert("请先在主框架的【模型设置】中配置您的API密钥。"); 
                 return; 

@@ -120,7 +120,13 @@ class SettingsManager {
         // 验证API密钥
         const providers = this.modelConfigManager.getAllProviders();
         providers.forEach(provider => {
-            if (provider.id !== 'coze-local') {
+            if (provider.id === 'coze-local') {
+                // 本地coze需要URL配置，API密钥是可选的
+                const localConfig = this.apiKeyManager.getLocalConfig(provider.id);
+                if (!localConfig?.url) {
+                    warnings.push(`${provider.id}: 未配置服务地址`);
+                }
+            } else {
                 const apiKey = this.apiKeyManager.getApiKey(provider.id);
                 if (apiKey) {
                     const validation = this.apiKeyManager.validateApiKey(provider.id, apiKey);
@@ -151,7 +157,17 @@ class SettingsManager {
         // 同步API密钥到各个工具
         const providers = this.modelConfigManager.getAllProviders();
         providers.forEach(provider => {
-            if (provider.id !== 'coze-local') {
+            if (provider.id === 'coze-local') {
+                // 本地coze同步URL和可选的API密钥
+                const localConfig = this.apiKeyManager.getLocalConfig(provider.id);
+                const apiKey = this.apiKeyManager.getApiKey(provider.id);
+                if (localConfig?.url) {
+                    localStorage.setItem('coze_local_base_url', localConfig.url);
+                }
+                if (apiKey) {
+                    localStorage.setItem('coze_local_api_key', apiKey);
+                }
+            } else {
                 const apiKey = this.apiKeyManager.getApiKey(provider.id);
                 if (apiKey) {
                     // 根据提供商设置不同的localStorage键名

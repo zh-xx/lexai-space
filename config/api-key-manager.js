@@ -19,6 +19,7 @@ class ApiKeyManager {
         this.apiKeys = {
             google: localStorage.getItem('google_api_key') || '',
             coze: localStorage.getItem('coze_api_key') || '',
+            'coze-local': localStorage.getItem('coze_local_api_key') || '',
             deepseek: localStorage.getItem('deepseek_api_key') || ''
         };
     }
@@ -27,7 +28,7 @@ class ApiKeyManager {
     loadLocalConfigs() {
         this.localConfigs = {
             'coze-local': {
-                url: localStorage.getItem('coze_local_url') || 'http://localhost:8080'
+                url: localStorage.getItem('coze_local_base_url') || 'http://localhost:8080'
             }
         };
     }
@@ -46,7 +47,7 @@ class ApiKeyManager {
         Object.keys(this.localConfigs).forEach(provider => {
             const config = this.localConfigs[provider];
             if (config.url) {
-                localStorage.setItem(`${provider.replace('-', '_')}_url`, config.url);
+                localStorage.setItem(`${provider.replace('-', '_')}_base_url`, config.url);
             }
         });
     }
@@ -76,6 +77,7 @@ class ApiKeyManager {
     // 检查API密钥是否已配置
     isApiKeyConfigured(provider) {
         if (provider === 'coze-local') {
+            // 本地coze需要URL配置，API密钥是可选的
             return !!this.getLocalConfig(provider)?.url;
         }
         return !!this.getApiKey(provider);
@@ -86,18 +88,11 @@ class ApiKeyManager {
         const status = {};
         
         // 检查需要API密钥的提供商
-        ['google', 'coze', 'deepseek'].forEach(provider => {
+        ['google', 'coze', 'deepseek', 'coze-local'].forEach(provider => {
             status[provider] = {
                 configured: this.isApiKeyConfigured(provider),
-                hasKey: !!this.getApiKey(provider)
-            };
-        });
-
-        // 检查本地部署的提供商
-        ['coze-local'].forEach(provider => {
-            status[provider] = {
-                configured: this.isApiKeyConfigured(provider),
-                hasUrl: !!this.getLocalConfig(provider)?.url
+                hasKey: !!this.getApiKey(provider),
+                hasUrl: provider === 'coze-local' ? !!this.getLocalConfig(provider)?.url : null
             };
         });
 

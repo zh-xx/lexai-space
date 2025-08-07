@@ -599,6 +599,16 @@
                     </div>
                     
                     <div class="form-group">
+                        <label class="form-label">API 密钥 (可选)</label>
+                        <input type="password" class="form-input" id="coze-local-api-key" 
+                               placeholder="请输入您的本地 Coze API 密钥 (可选)">
+                        <div class="help-text">
+                            本地部署可选择配置 API 密钥以增强安全性
+                            <a href="https://github.com/coze-dev/coze-studio" target="_blank">本地部署指南</a>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
                         <label class="form-label">上传API地址</label>
                         <input type="text" class="form-input" id="coze-local-upload-url" 
                                placeholder="http://localhost:8080/api/v1/files/upload" 
@@ -735,6 +745,7 @@
                     
                     // 加载Coze本地版配置
                     document.getElementById('coze-local-base-url').value = localStorage.getItem('coze_local_base_url') || 'http://localhost:8080';
+                    document.getElementById('coze-local-api-key').value = localStorage.getItem('coze_local_api_key') || '';
                     document.getElementById('coze-local-upload-url').value = localStorage.getItem('coze_local_upload_url') || 'http://localhost:8080/api/v1/files/upload';
                     document.getElementById('coze-local-workflow-url').value = localStorage.getItem('coze_local_workflow_url') || 'http://localhost:8080/api/v1/workflow/stream_run';
                     document.getElementById('coze-local-review-workflow-id').value = localStorage.getItem('coze_local_review_workflow_id') || '';
@@ -831,12 +842,14 @@
                     
                     // 保存Coze本地版配置
                     const cozeLocalBaseUrl = document.getElementById('coze-local-base-url').value.trim();
+                    const cozeLocalApiKey = document.getElementById('coze-local-api-key').value.trim();
                     const cozeLocalUploadUrl = document.getElementById('coze-local-upload-url').value.trim();
                     const cozeLocalWorkflowUrl = document.getElementById('coze-local-workflow-url').value.trim();
                     const cozeLocalReviewWorkflowId = document.getElementById('coze-local-review-workflow-id').value.trim();
                     const cozeLocalParseWorkflowId = document.getElementById('coze-local-parse-workflow-id').value.trim();
                     
                     if (cozeLocalBaseUrl) localStorage.setItem('coze_local_base_url', cozeLocalBaseUrl);
+                    if (cozeLocalApiKey) localStorage.setItem('coze_local_api_key', cozeLocalApiKey);
                     if (cozeLocalUploadUrl) localStorage.setItem('coze_local_upload_url', cozeLocalUploadUrl);
                     if (cozeLocalWorkflowUrl) localStorage.setItem('coze_local_workflow_url', cozeLocalWorkflowUrl);
                     if (cozeLocalReviewWorkflowId) localStorage.setItem('coze_local_review_workflow_id', cozeLocalReviewWorkflowId);
@@ -878,6 +891,7 @@
                                 },
                                 cozeLocal: {
                                     baseUrl: localStorage.getItem('coze_local_base_url'),
+                                    apiKey: localStorage.getItem('coze_local_api_key'),
                                     uploadUrl: localStorage.getItem('coze_local_upload_url'),
                                     workflowUrl: localStorage.getItem('coze_local_workflow_url'),
                                     reviewWorkflowId: localStorage.getItem('coze_local_review_workflow_id'),

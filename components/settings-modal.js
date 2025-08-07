@@ -163,6 +163,14 @@ class SettingsModal {
                         <a href="${providerInfo.api_key_url}" target="_blank">本地部署指南</a>
                     </div>
                 </div>
+                <div class="form-group">
+                    <label class="form-label">API 密钥 (可选)</label>
+                    <input type="password" class="form-input" id="${provider.id}-api-key" 
+                           placeholder="请输入您的 ${providerInfo.name} API 密钥 (可选)">
+                    <div class="help-text">
+                        本地部署可选择配置 API 密钥以增强安全性
+                    </div>
+                </div>
                 ${this.renderWorkflowConfig(provider.id)}
             </div>
         `;

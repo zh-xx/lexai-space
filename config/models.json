@@ -17,8 +17,8 @@
       "provider": "coze-local",
       "api_base": "http://localhost:8080",
       "endpoint": "/api/v1/workflow/stream_run",
-      "auth_type": "none",
-      "auth_param": null,
+      "auth_type": "bearer_token",
+      "auth_param": "Authorization",
       "description": "Coze 本地部署工作流，数据本地处理",
       "capabilities": ["workflow", "file-analysis", "custom-logic"],
       "max_tokens": null,
@@ -59,8 +59,8 @@
     },
     "coze-local": {
       "name": "Coze (本地)",
-      "api_key_help": "本地部署的 Coze 服务，无需 API 密钥",
-      "api_key_url": "https://github.com/coze-ai/coze-local"
+      "api_key_help": "本地部署的 Coze 服务，可选择配置 API 密钥",
+      "api_key_url": "https://github.com/coze-dev/coze-studio"
     }
   }
 } 

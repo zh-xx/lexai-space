@@ -33,7 +33,7 @@ class ModelManager {
         this.apiKeys = {
             google: localStorage.getItem('google_api_key') || '',
             coze: localStorage.getItem('coze_api_key') || '',
-            'coze-local': '', // Coze 本地部署不需要 API 密钥
+            'coze-local': localStorage.getItem('coze_local_api_key') || '', // Coze 本地部署可选择配置 API 密钥
             deepseek: localStorage.getItem('deepseek_api_key') || ''
         };
     }
@@ -273,7 +273,8 @@ class ModelManager {
 
     async callCozeLocalAPI(modelId, messages, options) {
         const modelConfig = this.getModelConfig(modelId);
-        const cozeLocalUrl = localStorage.getItem('coze_local_url') || 'http://localhost:8080';
+        const cozeLocalUrl = localStorage.getItem('coze_local_base_url') || 'http://localhost:8080';
+        const apiKey = this.getApiKey('coze-local');
         
         const url = `${cozeLocalUrl}/api/v1/workflow/stream_run`;
         
@@ -286,12 +287,20 @@ class ModelManager {
         // 构建消息内容
         const content = messages.map(msg => msg.content).join('\n');
         
+        // 构建请求头
+        const headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'text/event-stream'
+        };
+        
+        // 如果配置了API密钥，添加到请求头
+        if (apiKey) {
+            headers['Authorization'] = `Bearer ${apiKey}`;
+        }
+        
         const response = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'text/event-stream'
-            },
+            headers: headers,
             body: JSON.stringify({
                 workflow_id: workflowId,
                 parameters: {

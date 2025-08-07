@@ -109,8 +109,8 @@ class ModelConfigManager {
     // 获取需要API密钥的提供商
     getProvidersRequiringApiKey() {
         return this.getAllProviders().filter(provider => {
-            // 本地部署的提供商不需要API密钥
-            return !['coze-local'].includes(provider.id);
+            // 所有提供商都可能需要API密钥
+            return true;
         });
     }
 
