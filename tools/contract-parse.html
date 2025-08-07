@@ -827,24 +827,51 @@
 
             getApiKey() { 
                 if (this.isUsingUnifiedSettings()) {
-                    const currentModel = localStorage.getItem('contract-parse_model') || 'coze-workflow';
-                    if (currentModel === 'coze-local-workflow') {
+                    const currentWorkflow = localStorage.getItem('contract_parse_workflow') || '';
+                    
+                    if (currentWorkflow === 'coze-local') {
                         return ''; // 本地部署不需要API密钥
+                    } else if (currentWorkflow === 'coze-online') {
+                        return localStorage.getItem('coze_online_api_key') || '';
+                    } else {
+                        return ''; // 未配置
                     }
-                    return localStorage.getItem('coze_api_key') || '';
                 }
                 return localStorage.getItem('contract-parse-api-key'); 
             }
 
             getCurrentModel() {
                 if (this.isUsingUnifiedSettings()) {
-                    return localStorage.getItem('contract-parse_model') || 'coze-workflow';
+                    const workflow = localStorage.getItem('contract_parse_workflow') || '';
+                    if (workflow === 'coze-online') {
+                        return 'coze-workflow';
+                    } else if (workflow === 'coze-local') {
+                        return 'coze-local-workflow';
+                    } else {
+                        return 'coze-workflow'; // 默认
+                    }
                 }
                 return localStorage.getItem('selectedModel') || 'coze-workflow';
             }
 
             init() {
                 this.bindEvents();
+                
+                // 监听设置更新消息
+                window.addEventListener('message', (event) => {
+                    if (event.data && event.data.type === 'workflow_settings_updated') {
+                        console.log('收到工作流设置更新消息:', event.data);
+                        // 可以在这里添加设置更新后的处理逻辑
+                    }
+                });
+
+                // 监听LLM设置更新消息
+                window.addEventListener('message', (event) => {
+                    if (event.data && event.data.type === 'llm_settings_updated') {
+                        console.log('合同解析工具收到LLM设置更新消息:', event.data);
+                        // 可以在这里添加LLM设置更新后的处理逻辑
+                    }
+                });
             }
 
             bindEvents() {
@@ -957,16 +984,15 @@
 
                 // 检查API配置
                 const apiKey = this.getApiKey();
+                const currentWorkflow = localStorage.getItem('contract_parse_workflow') || '';
                 const workflowId = this.isUsingUnifiedSettings() 
-                    ? (this.getCurrentModel() === 'coze-local-workflow' 
-                        ? localStorage.getItem('parse_local_workflow_id') 
-                        : localStorage.getItem('parse_workflow_id'))
+                    ? (currentWorkflow === 'coze-local' 
+                        ? localStorage.getItem('coze_local_parse_workflow_id') 
+                        : localStorage.getItem('coze_online_parse_workflow_id'))
                     : localStorage.getItem('contract-parse-workflow-id');
                 
-                const currentModel = this.getCurrentModel();
-                
                 // 检查API密钥（本地部署不需要）
-                if (currentModel !== 'coze-local-workflow' && !apiKey) {
+                if (currentWorkflow === 'coze-online' && !apiKey) {
                     this.showError('请先在主框架的"模型设置"中配置您的API密钥');
                     return;
                 }
@@ -999,25 +1025,27 @@
 
             async callParseAPI(contractText, supplementText) {
                 const isUsingUnifiedSettings = localStorage.getItem('use_unified_settings') === 'true';
+                const currentWorkflow = localStorage.getItem('contract_parse_workflow') || '';
+                
                 const apiKey = isUsingUnifiedSettings 
-                    ? (localStorage.getItem('contract-parse_model') === 'coze-local-workflow' 
+                    ? (currentWorkflow === 'coze-local' 
                         ? '' // 本地部署不需要API密钥
-                        : localStorage.getItem('coze_api_key'))
+                        : localStorage.getItem('coze_online_api_key'))
                     : localStorage.getItem('contract-parse-api-key');
                 const workflowId = isUsingUnifiedSettings 
-                    ? (localStorage.getItem('contract-parse_model') === 'coze-local-workflow' 
-                        ? localStorage.getItem('parse_local_workflow_id') 
-                        : localStorage.getItem('parse_workflow_id'))
+                    ? (currentWorkflow === 'coze-local' 
+                        ? localStorage.getItem('coze_local_parse_workflow_id') 
+                        : localStorage.getItem('coze_online_parse_workflow_id'))
                     : localStorage.getItem('contract-parse-workflow-id');
                 const uploadApiUrl = isUsingUnifiedSettings 
-                    ? (localStorage.getItem('contract-parse_model') === 'coze-local-workflow' 
-                        ? `${localStorage.getItem('coze_local_url') || 'http://localhost:8080'}/api/v1/files/upload`
-                        : 'https://api.coze.cn/v1/files/upload')
+                    ? (currentWorkflow === 'coze-local' 
+                        ? localStorage.getItem('coze_local_upload_url') || 'http://localhost:8080/api/v1/files/upload'
+                        : localStorage.getItem('coze_online_upload_url') || 'https://api.coze.cn/v1/files/upload')
                     : (localStorage.getItem('contract-parse-upload-api-url') || 'https://api.coze.cn/v1/files/upload');
                 const streamRunApiUrl = isUsingUnifiedSettings 
-                    ? (localStorage.getItem('contract-parse_model') === 'coze-local-workflow' 
-                        ? `${localStorage.getItem('coze_local_url') || 'http://localhost:8080'}/api/v1/workflow/stream_run`
-                        : 'https://api.coze.cn/v1/workflow/stream_run')
+                    ? (currentWorkflow === 'coze-local' 
+                        ? localStorage.getItem('coze_local_workflow_url') || 'http://localhost:8080/api/v1/workflow/stream_run'
+                        : localStorage.getItem('coze_online_workflow_url') || 'https://api.coze.cn/v1/workflow/stream_run')
                     : (localStorage.getItem('contract-parse-stream-run-api-url') || 'https://api.coze.cn/v1/workflow/stream_run');
 
                 try {

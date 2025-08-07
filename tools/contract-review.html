@@ -1202,24 +1202,51 @@
 
         function getApiKey() { 
             if (isUsingUnifiedSettings()) {
-                const currentModel = localStorage.getItem('contract-review_model') || 'coze-workflow';
-                if (currentModel === 'coze-local-workflow') {
+                const currentWorkflow = localStorage.getItem('contract_review_workflow') || '';
+                
+                if (currentWorkflow === 'coze-local') {
                     return ''; // 本地部署不需要API密钥
+                } else if (currentWorkflow === 'coze-online') {
+                    return localStorage.getItem('coze_online_api_key') || '';
+                } else {
+                    return ''; // 未配置
                 }
-                return localStorage.getItem('coze_api_key') || '';
             }
             return localStorage.getItem('cozeApiKey'); 
         }
 
         function getCurrentModel() {
             if (isUsingUnifiedSettings()) {
-                return localStorage.getItem('contract-review_model') || 'coze-workflow';
+                const workflow = localStorage.getItem('contract_review_workflow') || '';
+                if (workflow === 'coze-online') {
+                    return 'coze-workflow';
+                } else if (workflow === 'coze-local') {
+                    return 'coze-local-workflow';
+                } else {
+                    return 'coze-workflow'; // 默认
+                }
             }
             return localStorage.getItem('selectedModel') || 'coze-workflow';
         }
 
         // --- Initialize Libraries ---
         mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' });
+
+        // 监听设置更新消息
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'workflow_settings_updated') {
+                console.log('收到工作流设置更新消息:', event.data);
+                // 可以在这里添加设置更新后的处理逻辑
+            }
+        });
+
+        // 监听LLM设置更新消息
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'llm_settings_updated') {
+                console.log('合同审核工具收到LLM设置更新消息:', event.data);
+                // 可以在这里添加LLM设置更新后的处理逻辑
+            }
+        });
 
         // --- Global Config ---
         const DEFAULT_WORKFLOW_ID = "";
@@ -1551,9 +1578,11 @@
         // 获取API地址，优先用用户自定义
         function getUploadApiUrl() {
             if (isUsingUnifiedSettings()) {
-                const currentModel = localStorage.getItem('contract-review_model') || 'coze-workflow';
-                if (currentModel === 'coze-local-workflow') {
-                    return `${localStorage.getItem('coze_local_url') || 'http://localhost:8080'}/api/v1/files/upload`;
+                const currentWorkflow = localStorage.getItem('contract_review_workflow') || '';
+                if (currentWorkflow === 'coze-local') {
+                    return localStorage.getItem('coze_local_upload_url') || 'http://localhost:8080/api/v1/files/upload';
+                } else if (currentWorkflow === 'coze-online') {
+                    return localStorage.getItem('coze_online_upload_url') || 'https://api.coze.cn/v1/files/upload';
                 }
                 return 'https://api.coze.cn/v1/files/upload';
             }
@@ -1561,9 +1590,11 @@
         }
         function getStreamRunApiUrl() {
             if (isUsingUnifiedSettings()) {
-                const currentModel = localStorage.getItem('contract-review_model') || 'coze-workflow';
-                if (currentModel === 'coze-local-workflow') {
-                    return `${localStorage.getItem('coze_local_url') || 'http://localhost:8080'}/api/v1/workflow/stream_run`;
+                const currentWorkflow = localStorage.getItem('contract_review_workflow') || '';
+                if (currentWorkflow === 'coze-local') {
+                    return localStorage.getItem('coze_local_workflow_url') || 'http://localhost:8080/api/v1/workflow/stream_run';
+                } else if (currentWorkflow === 'coze-online') {
+                    return localStorage.getItem('coze_online_workflow_url') || 'https://api.coze.cn/v1/workflow/stream_run';
                 }
                 return 'https://api.coze.cn/v1/workflow/stream_run';
             }
@@ -1573,11 +1604,13 @@
         function getWorkflowId() { 
             if (isUsingUnifiedSettings()) {
                 // 检查是否使用本地部署
-                const currentModel = localStorage.getItem('contract-review_model') || 'coze-workflow';
-                if (currentModel === 'coze-local-workflow') {
-                    return localStorage.getItem('review_local_workflow_id') || DEFAULT_WORKFLOW_ID;
+                const currentWorkflow = localStorage.getItem('contract_review_workflow') || '';
+                if (currentWorkflow === 'coze-local') {
+                    return localStorage.getItem('coze_local_review_workflow_id') || DEFAULT_WORKFLOW_ID;
+                } else if (currentWorkflow === 'coze-online') {
+                    return localStorage.getItem('coze_online_review_workflow_id') || DEFAULT_WORKFLOW_ID;
                 } else {
-                    return localStorage.getItem('review_workflow_id') || DEFAULT_WORKFLOW_ID;
+                    return DEFAULT_WORKFLOW_ID;
                 }
             }
             return localStorage.getItem('workflowId') || DEFAULT_WORKFLOW_ID; 
@@ -1586,10 +1619,10 @@
         async function runWorkflow() {
             const apiKey = getApiKey();
             const workflowId = getWorkflowId();
-            const currentModel = localStorage.getItem('contract-review_model') || 'coze-workflow';
+            const currentWorkflow = localStorage.getItem('contract_review_workflow') || '';
             
             // 检查API密钥（本地部署不需要）
-            if (currentModel !== 'coze-local-workflow' && !apiKey) { 
+            if (currentWorkflow === 'coze-online' && !apiKey) { 
                 alert("请先在主框架的【模型设置】中配置您的API密钥。"); 
                 return; 
             }

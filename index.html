@@ -79,51 +79,7 @@
             gap: 12px;
         }
 
-        /* 左下角设置按钮 */
-        .bottom-settings {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            z-index: 1000;
-        }
 
-        .settings-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 16px;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9em;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .settings-btn:hover {
-            background: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(90, 103, 216, 0.3);
-        }
-
-        .settings-btn i {
-            font-size: 1em;
-        }
-
-        /* 侧边栏收缩时的设置按钮位置 */
-        .sidebar.collapsed + .main-content .bottom-settings {
-            left: 90px;
-        }
-
-        @media (max-width: 768px) {
-            .bottom-settings {
-                bottom: 15px;
-                left: 15px;
-            }
-        }
 
 
 
@@ -452,6 +408,21 @@
             background: #E53E3E;
         }
 
+        /* 设置分隔线样式 */
+        .tool-separator {
+            padding: 16px 20px 8px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 16px;
+        }
+
+        .tool-separator span {
+            font-size: 0.8em;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         /* 主内容区域 */
         .main-content {
             flex: 1;
@@ -561,279 +532,7 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* 设置模态框样式 */
-        .settings-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-        }
 
-        .settings-content {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            max-width: 700px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .settings-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .settings-title {
-            font-size: 1.5em;
-            font-weight: 600;
-            color: var(--text-color);
-        }
-
-        .close-settings {
-            background: none;
-            border: none;
-            font-size: 1.5em;
-            cursor: pointer;
-            color: var(--text-secondary);
-            padding: 5px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-        }
-
-        .close-settings:hover {
-            background: var(--secondary-color);
-            color: var(--text-color);
-        }
-
-        .settings-section {
-            margin-bottom: 30px;
-        }
-
-        .section-title {
-            font-size: 1.2em;
-            font-weight: 600;
-            color: var(--text-color);
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .section-title i {
-            color: var(--primary-color);
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            font-weight: 500;
-            color: var(--text-color);
-            margin-bottom: 8px;
-            font-size: 0.95em;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 0.95em;
-            transition: all 0.2s ease;
-            background: white;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.1);
-        }
-
-        .form-select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 0.95em;
-            background: white;
-            cursor: pointer;
-        }
-
-        .form-select:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.1);
-        }
-
-        .settings-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.95em;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-primary {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-hover);
-            transform: translateY(-1px);
-        }
-
-        .btn-secondary {
-            background: var(--secondary-color);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-secondary:hover {
-            background: #EDF2F7;
-        }
-
-        .api-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 8px;
-            font-size: 0.85em;
-        }
-
-        .status-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #E53E3E;
-        }
-
-        .status-indicator.connected {
-            background: #38A169;
-        }
-
-        .status-indicator.testing {
-            background: #DD6B20;
-            animation: pulse 1s infinite;
-        }
-
-        .help-text {
-            font-size: 0.85em;
-            color: var(--text-secondary);
-            margin-top: 5px;
-            line-height: 1.4;
-        }
-
-        .provider-config {
-            background: var(--secondary-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .provider-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-        }
-
-        .provider-info h4 {
-            margin: 0 0 5px 0;
-            font-size: 1.1em;
-            font-weight: 600;
-            color: var(--text-color);
-        }
-
-        .provider-info p {
-            margin: 0;
-            font-size: 0.9em;
-            color: var(--text-secondary);
-        }
-
-        .tool-config {
-            background: var(--secondary-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .tool-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-        }
-
-        .tool-info h4 {
-            margin: 0 0 5px 0;
-            font-size: 1.1em;
-            font-weight: 600;
-            color: var(--text-color);
-        }
-
-        .tool-info p {
-            margin: 0;
-            font-size: 0.9em;
-            color: var(--text-secondary);
-        }
-
-        .model-status {
-            font-size: 0.85em;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        .help-text a {
-            color: var(--primary-color);
-            text-decoration: none;
-        }
-
-        .help-text a:hover {
-            text-decoration: underline;
-        }
-
-        @media (max-width: 768px) {
-            .settings-content {
-                width: 95%;
-                padding: 20px;
-            }
-            
-            .settings-actions {
-                flex-direction: column;
-            }
-            
-            .btn {
-                width: 100%;
-            }
-        }
     </style>
 </head>
 <body>
@@ -913,6 +612,33 @@
                     </div>
                     <div class="tool-status available"></div>
                 </div>
+
+                <!-- 设置分隔线 -->
+                <div class="tool-separator">
+                    <span>设置</span>
+                </div>
+
+                <div class="tool-item" data-tool="workflow-settings">
+                    <div class="tool-icon">
+                        <i class="fa-solid fa-diagram-project"></i>
+                    </div>
+                    <div class="tool-info">
+                        <div class="tool-name">工作流设置</div>
+                        <div class="tool-desc">配置工作流API和工具模型</div>
+                    </div>
+                    <div class="tool-status available"></div>
+                </div>
+
+                <div class="tool-item" data-tool="llm-settings">
+                    <div class="tool-icon">
+                        <i class="fa-solid fa-brain"></i>
+                    </div>
+                    <div class="tool-info">
+                        <div class="tool-name">LLM模型设置</div>
+                        <div class="tool-desc">配置AI模型和工具默认模型</div>
+                    </div>
+                    <div class="tool-status available"></div>
+                </div>
             </nav>
         </aside>
 
@@ -927,412 +653,10 @@
                 <iframe id="tool-frame" src="about:blank" frameborder="0" style="display: none;"></iframe>
             </div>
             
-            <!-- 左下角设置按钮 -->
-            <div class="bottom-settings">
-                <button class="settings-btn" id="settings-btn" title="模型设置">
-                    <i class="fa-solid fa-cog"></i>
-                    <span>模型设置</span>
-                </button>
-            </div>
+            
         </main>
 
-        <!-- 设置模态框 -->
-        <div class="settings-modal" id="settings-modal">
-            <div class="settings-content">
-                <div class="settings-header">
-                    <h2 class="settings-title">模型设置</h2>
-                    <button class="close-settings" id="close-settings">&times;</button>
-                </div>
-                
-                <!-- API 密钥配置 -->
-                <div class="settings-section">
-                    <h3 class="section-title">
-                        <i class="fa-solid fa-key"></i>
-                        API 密钥配置
-                    </h3>
-                    
-                    <!-- Google API -->
-                    <div class="provider-config">
-                        <div class="provider-header">
-                            <div class="provider-info">
-                                <h4>Google (Gemini)</h4>
-                                <p>支持 Gemini 1.5/2.0/2.5 Pro 模型</p>
-                            </div>
-                            <div class="api-status">
-                                <div class="status-indicator" id="google-status"></div>
-                                <span id="google-status-text">未配置</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">API 密钥</label>
-                            <input type="password" class="form-input" id="google-api-key" placeholder="请输入您的 Google API 密钥">
-                            <div class="help-text">
-                                <a href="https://makersuite.google.com/app/apikey" target="_blank">获取 API 密钥</a>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- OpenAI API -->
-                    <div class="provider-config">
-                        <div class="provider-header">
-                            <div class="provider-info">
-                                <h4>OpenAI (GPT)</h4>
-                                <p>支持 GPT-4o 和 GPT-4o Mini 模型</p>
-                            </div>
-                            <div class="api-status">
-                                <div class="status-indicator" id="openai-status"></div>
-                                <span id="openai-status-text">未配置</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">API 密钥</label>
-                            <input type="password" class="form-input" id="openai-api-key" placeholder="请输入您的 OpenAI API 密钥">
-                            <div class="help-text">
-                                <a href="https://platform.openai.com/api-keys" target="_blank">获取 API 密钥</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Anthropic API -->
-                    <div class="provider-config">
-                        <div class="provider-header">
-                            <div class="provider-info">
-                                <h4>Anthropic (Claude)</h4>
-                                <p>支持 Claude 3.5 Sonnet 模型</p>
-                            </div>
-                            <div class="api-status">
-                                <div class="status-indicator" id="anthropic-status"></div>
-                                <span id="anthropic-status-text">未配置</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">API 密钥</label>
-                            <input type="password" class="form-input" id="anthropic-api-key" placeholder="请输入您的 Anthropic API 密钥">
-                            <div class="help-text">
-                                <a href="https://console.anthropic.com/" target="_blank">获取 API 密钥</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Coze API -->
-                    <div class="provider-config">
-                        <div class="provider-header">
-                            <div class="provider-info">
-                                <h4>Coze (在线工作流)</h4>
-                                <p>支持自定义工作流</p>
-                            </div>
-                            <div class="api-status">
-                                <div class="status-indicator" id="coze-status"></div>
-                                <span id="coze-status-text">未配置</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">API 密钥</label>
-                            <input type="password" class="form-input" id="coze-api-key" placeholder="请输入您的 Coze API 密钥">
-                            <div class="help-text">
-                                <a href="https://www.coze.cn/" target="_blank">获取 API 密钥</a>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">合同审核工作流 ID</label>
-                            <input type="text" class="form-input" id="review-workflow-id" placeholder="请输入合同审核工作流的 ID">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">合同解析工作流 ID</label>
-                            <input type="text" class="form-input" id="parse-workflow-id" placeholder="请输入合同解析工作流的 ID">
-                        </div>
-                    </div>
-
-                    <!-- Coze 本地部署 -->
-                    <div class="provider-config">
-                        <div class="provider-header">
-                            <div class="provider-info">
-                                <h4>Coze (本地部署)</h4>
-                                <p>本地部署的工作流，数据本地处理</p>
-                            </div>
-                            <div class="api-status">
-                                <div class="status-indicator" id="coze-local-status"></div>
-                                <span id="coze-local-status-text">未配置</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">服务地址</label>
-                            <input type="text" class="form-input" id="coze-local-url" placeholder="http://localhost:8080" value="http://localhost:8080">
-                            <div class="help-text">
-                                <a href="https://github.com/coze-ai/coze-local" target="_blank">本地部署指南</a>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">合同审核工作流 ID</label>
-                            <input type="text" class="form-input" id="review-local-workflow-id" placeholder="请输入本地合同审核工作流的 ID">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">合同解析工作流 ID</label>
-                            <input type="text" class="form-input" id="parse-local-workflow-id" placeholder="请输入本地合同解析工作流的 ID">
-                        </div>
-                    </div>
-
-                    <!-- DeepSeek API -->
-                    <div class="provider-config">
-                        <div class="provider-header">
-                            <div class="provider-info">
-                                <h4>DeepSeek</h4>
-                                <p>支持 DeepSeek Chat 和 Coder 模型</p>
-                            </div>
-                            <div class="api-status">
-                                <div class="status-indicator" id="deepseek-status"></div>
-                                <span id="deepseek-status-text">未配置</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">API 密钥</label>
-                            <input type="password" class="form-input" id="deepseek-api-key" placeholder="请输入您的 DeepSeek API 密钥">
-                            <div class="help-text">
-                                <a href="https://platform.deepseek.com/" target="_blank">获取 API 密钥</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Qwen API -->
-                    <div class="provider-config">
-                        <div class="provider-header">
-                            <div class="provider-info">
-                                <h4>阿里云 Qwen</h4>
-                                <p>支持 Qwen Turbo/Plus/Max 模型</p>
-                            </div>
-                            <div class="api-status">
-                                <div class="status-indicator" id="qwen-status"></div>
-                                <span id="qwen-status-text">未配置</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">API 密钥</label>
-                            <input type="password" class="form-input" id="qwen-api-key" placeholder="请输入您的 Qwen API 密钥">
-                            <div class="help-text">
-                                <a href="https://dashscope.console.aliyun.com/" target="_blank">获取 API 密钥</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Kimi API -->
-                    <div class="provider-config">
-                        <div class="provider-header">
-                            <div class="provider-info">
-                                <h4>Moonshot Kimi</h4>
-                                <p>支持 Kimi 模型</p>
-                            </div>
-                            <div class="api-status">
-                                <div class="status-indicator" id="kimi-status"></div>
-                                <span id="kimi-status-text">未配置</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">API 密钥</label>
-                            <input type="password" class="form-input" id="kimi-api-key" placeholder="请输入您的 Kimi API 密钥">
-                            <div class="help-text">
-                                <a href="https://kimi.moonshot.cn/" target="_blank">获取 API 密钥</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ChatGLM API -->
-                    <div class="provider-config">
-                        <div class="provider-header">
-                            <div class="provider-info">
-                                <h4>智谱 AI</h4>
-                                <p>支持 ChatGLM3-6B/Turbo/4 模型</p>
-                            </div>
-                            <div class="api-status">
-                                <div class="status-indicator" id="chatglm-status"></div>
-                                <span id="chatglm-status-text">未配置</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">API 密钥</label>
-                            <input type="password" class="form-input" id="chatglm-api-key" placeholder="请输入您的 ChatGLM API 密钥">
-                            <div class="help-text">
-                                <a href="https://open.bigmodel.cn/" target="_blank">获取 API 密钥</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Ollama API -->
-                    <div class="provider-config">
-                        <div class="provider-header">
-                            <div class="provider-info">
-                                <h4>Ollama (本地)</h4>
-                                <p>支持多种本地模型，无需 API 密钥</p>
-                            </div>
-                            <div class="api-status">
-                                <div class="status-indicator" id="ollama-status"></div>
-                                <span id="ollama-status-text">未配置</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">服务地址</label>
-                            <input type="text" class="form-input" id="ollama-url" placeholder="http://localhost:11434" value="http://localhost:11434">
-                            <div class="help-text">
-                                <a href="https://ollama.ai/" target="_blank">安装 Ollama</a> | 
-                                <a href="https://ollama.ai/library" target="_blank">模型库</a>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">已安装模型</label>
-                            <div id="ollama-models-list" class="help-text">
-                                点击"测试连接"查看已安装的模型
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 工具模型配置 -->
-                <div class="settings-section">
-                    <h3 class="section-title">
-                        <i class="fa-solid fa-tools"></i>
-                        工具模型配置
-                    </h3>
-                    
-                    <!-- AI 对话工具 -->
-                    <div class="tool-config">
-                        <div class="tool-header">
-                            <div class="tool-info">
-                                <h4>AI 对话</h4>
-                                <p>与AI进行智能对话</p>
-                            </div>
-                            <div class="model-status">
-                                <span id="ai-chat-model-status">未配置</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">默认模型</label>
-                            <select class="form-select" id="ai-chat-model">
-                                <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-                                <option value="gemini-2.0-pro">Gemini 2.0 Pro</option>
-                                <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-                                <option value="gpt-4o">GPT-4o</option>
-                                <option value="gpt-4o-mini">GPT-4o Mini</option>
-                                <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
-                                <option value="deepseek-chat">DeepSeek Chat</option>
-                                <option value="deepseek-coder">DeepSeek Coder</option>
-                                <option value="qwen-turbo">Qwen Turbo</option>
-                                <option value="qwen-plus">Qwen Plus</option>
-                                <option value="qwen-max">Qwen Max</option>
-                                <option value="kimi">Kimi</option>
-                                <option value="chatglm3-6b">ChatGLM3-6B</option>
-                                <option value="chatglm3-turbo">ChatGLM3 Turbo</option>
-                                <option value="chatglm4">ChatGLM4</option>
-                                <optgroup label="--- Ollama 本地模型 ---">
-                                    <option value="llama3.1-8b">Llama 3.1 8B</option>
-                                    <option value="llama3.1-70b">Llama 3.1 70B</option>
-                                    <option value="qwen2.5-7b">Qwen2.5 7B</option>
-                                    <option value="qwen2.5-32b">Qwen2.5 32B</option>
-                                    <option value="deepseek-coder-6.7b">DeepSeek Coder 6.7B</option>
-                                    <option value="deepseek-coder-33b">DeepSeek Coder 33B</option>
-                                    <option value="codellama-7b">Code Llama 7B</option>
-                                    <option value="codellama-34b">Code Llama 34B</option>
-                                    <option value="mistral-7b">Mistral 7B</option>
-                                    <option value="mixtral-8x7b">Mixtral 8x7B</option>
-                                    <option value="phi3-mini">Phi-3 Mini</option>
-                                    <option value="phi3-medium">Phi-3 Medium</option>
-                                </optgroup>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- 合同生成工具 -->
-                    <div class="tool-config">
-                        <div class="tool-header">
-                            <div class="tool-info">
-                                <h4>合同生成</h4>
-                                <p>智能生成法律文书</p>
-                            </div>
-                            <div class="model-status">
-                                <span id="document-gen-model-status">未配置</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">默认模型</label>
-                            <select class="form-select" id="document-gen-model">
-                                <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-                                <option value="gemini-2.0-pro">Gemini 2.0 Pro</option>
-                                <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-                                <option value="gpt-4o">GPT-4o</option>
-                                <option value="gpt-4o-mini">GPT-4o Mini</option>
-                                <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
-                                <option value="deepseek-chat">DeepSeek Chat</option>
-                                <option value="deepseek-coder">DeepSeek Coder</option>
-                                <option value="qwen-turbo">Qwen Turbo</option>
-                                <option value="qwen-plus">Qwen Plus</option>
-                                <option value="qwen-max">Qwen Max</option>
-                                <option value="kimi">Kimi</option>
-                                <option value="chatglm3-6b">ChatGLM3-6B</option>
-                                <option value="chatglm3-turbo">ChatGLM3 Turbo</option>
-                                <option value="chatglm4">ChatGLM4</option>
-                                <optgroup label="--- Ollama 本地模型 ---">
-                                    <option value="llama3.1-8b">Llama 3.1 8B</option>
-                                    <option value="llama3.1-70b">Llama 3.1 70B</option>
-                                    <option value="qwen2.5-7b">Qwen2.5 7B</option>
-                                    <option value="qwen2.5-32b">Qwen2.5 32B</option>
-                                    <option value="deepseek-coder-6.7b">DeepSeek Coder 6.7B</option>
-                                    <option value="deepseek-coder-33b">DeepSeek Coder 33B</option>
-                                    <option value="codellama-7b">Code Llama 7B</option>
-                                    <option value="codellama-34b">Code Llama 34B</option>
-                                    <option value="mistral-7b">Mistral 7B</option>
-                                    <option value="mixtral-8x7b">Mixtral 8x7B</option>
-                                    <option value="phi3-mini">Phi-3 Mini</option>
-                                    <option value="phi3-medium">Phi-3 Medium</option>
-                                </optgroup>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- 合同审核工具 -->
-                    <div class="tool-config">
-                        <div class="tool-header">
-                            <div class="tool-info">
-                                <h4>合同审核</h4>
-                                <p>智能审核合同条款</p>
-                            </div>
-                            <div class="model-status">
-                                <span id="contract-review-model-status">未配置</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">默认模型</label>
-                            <select class="form-select" id="contract-review-model">
-                                <option value="coze-workflow">Coze 工作流 (在线)</option>
-                                <option value="coze-local-workflow">Coze 工作流 (本地)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- 合同解析工具 -->
-                    <div class="tool-config">
-                        <div class="tool-header">
-                            <div class="tool-info">
-                                <h4>合同解析</h4>
-                                <p>智能解析合同内容</p>
-                            </div>
-                            <div class="model-status">
-                                <span id="contract-parse-model-status">未配置</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">默认模型</label>
-                            <select class="form-select" id="contract-parse-model">
-                                <option value="coze-workflow">Coze 工作流 (在线)</option>
-                                <option value="coze-local-workflow">Coze 工作流 (本地)</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="settings-actions">
-                    <button class="btn btn-secondary" id="test-all-apis">测试所有 API</button>
-                    <button class="btn btn-primary" id="save-settings">保存设置</button>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script src="config/model-manager.js"></script>
@@ -1369,6 +693,20 @@
                         icon: 'fa-file-lines',
                         description: '智能解析合同内容',
                         status: 'available'
+                    },
+                    'workflow-settings': {
+                        name: '工作流设置',
+                        url: 'tools/workflow-settings.html',
+                        icon: 'fa-diagram-project',
+                        description: '配置工作流API和工具模型',
+                        status: 'available'
+                    },
+                    'llm-settings': {
+                        name: 'LLM模型设置',
+                        url: 'tools/llm-settings.html',
+                        icon: 'fa-brain',
+                        description: '配置AI模型和工具默认模型',
+                        status: 'available'
                     }
                 };
                 this.init();
@@ -1380,7 +718,6 @@
                 await this.modelManager.init();
                 
                 this.bindEvents();
-                this.updateSettingsStatus(); // 初始化设置状态
                 this.switchTool('ai-chat'); // 默认显示AI对话
             }
             
@@ -1398,37 +735,9 @@
                     });
                 });
                 
-                // 设置按钮事件
-                const settingsBtn = document.getElementById('settings-btn');
-                const settingsModal = document.getElementById('settings-modal');
-                const closeSettings = document.getElementById('close-settings');
+
                 
-                settingsBtn.addEventListener('click', () => {
-                    this.openSettings();
-                });
-                
-                closeSettings.addEventListener('click', () => {
-                    this.closeSettings();
-                });
-                
-                // 点击模态框外部关闭
-                settingsModal.addEventListener('click', (e) => {
-                    if (e.target === settingsModal) {
-                        this.closeSettings();
-                    }
-                });
-                
-                // 保存设置按钮
-                const saveSettingsBtn = document.getElementById('save-settings');
-                saveSettingsBtn.addEventListener('click', () => {
-                    this.saveSettings();
-                });
-                
-                // 测试API按钮
-                const testApisBtn = document.getElementById('test-all-apis');
-                testApisBtn.addEventListener('click', () => {
-                    this.testAllApis();
-                });
+
                 
                 // 搜索功能
                 const searchInput = document.getElementById('tool-search');
@@ -1537,368 +846,7 @@
                 document.getElementById('loading-overlay').style.display = 'none';
             }
             
-            // 设置管理方法
-            openSettings() {
-                this.loadSettings();
-                document.getElementById('settings-modal').style.display = 'flex';
-            }
-            
-            closeSettings() {
-                document.getElementById('settings-modal').style.display = 'none';
-            }
-            
-            loadSettings() {
-                // 加载API密钥
-                document.getElementById('google-api-key').value = this.modelManager.getApiKey('google') || '';
-                document.getElementById('openai-api-key').value = this.modelManager.getApiKey('openai') || '';
-                document.getElementById('anthropic-api-key').value = this.modelManager.getApiKey('anthropic') || '';
-                document.getElementById('coze-api-key').value = this.modelManager.getApiKey('coze') || '';
-                document.getElementById('deepseek-api-key').value = this.modelManager.getApiKey('deepseek') || '';
-                document.getElementById('qwen-api-key').value = this.modelManager.getApiKey('qwen') || '';
-                document.getElementById('kimi-api-key').value = this.modelManager.getApiKey('kimi') || '';
-                document.getElementById('chatglm-api-key').value = this.modelManager.getApiKey('chatglm') || '';
-                document.getElementById('ollama-url').value = localStorage.getItem('ollama_url') || 'http://localhost:11434';
-                document.getElementById('coze-local-url').value = localStorage.getItem('coze_local_url') || 'http://localhost:8080';
-                
-                // 加载工具模型配置
-                document.getElementById('ai-chat-model').value = this.modelManager.getCurrentModel('ai-chat');
-                document.getElementById('document-gen-model').value = this.modelManager.getCurrentModel('document-gen');
-                document.getElementById('contract-review-model').value = this.modelManager.getCurrentModel('contract-review');
-                document.getElementById('contract-parse-model').value = this.modelManager.getCurrentModel('contract-parse');
-                
-                // 加载工作流ID
-                document.getElementById('review-workflow-id').value = localStorage.getItem('review_workflow_id') || '';
-                document.getElementById('parse-workflow-id').value = localStorage.getItem('parse_workflow_id') || '';
-                document.getElementById('review-local-workflow-id').value = localStorage.getItem('review_local_workflow_id') || '';
-                document.getElementById('parse-local-workflow-id').value = localStorage.getItem('parse_local_workflow_id') || '';
-                
-                // 更新状态显示
-                this.updateSettingsStatus();
-            }
-            
-            saveSettings() {
-                // 保存API密钥
-                const googleApiKey = document.getElementById('google-api-key').value.trim();
-                const openaiApiKey = document.getElementById('openai-api-key').value.trim();
-                const anthropicApiKey = document.getElementById('anthropic-api-key').value.trim();
-                const cozeApiKey = document.getElementById('coze-api-key').value.trim();
-                const deepseekApiKey = document.getElementById('deepseek-api-key').value.trim();
-                const qwenApiKey = document.getElementById('qwen-api-key').value.trim();
-                const kimiApiKey = document.getElementById('kimi-api-key').value.trim();
-                const chatglmApiKey = document.getElementById('chatglm-api-key').value.trim();
-                const ollamaUrl = document.getElementById('ollama-url').value.trim();
-                const cozeLocalUrl = document.getElementById('coze-local-url').value.trim();
-                
-                if (googleApiKey) {
-                    this.modelManager.setApiKey('google', googleApiKey);
-                }
-                if (openaiApiKey) {
-                    this.modelManager.setApiKey('openai', openaiApiKey);
-                }
-                if (anthropicApiKey) {
-                    this.modelManager.setApiKey('anthropic', anthropicApiKey);
-                }
-                if (cozeApiKey) {
-                    this.modelManager.setApiKey('coze', cozeApiKey);
-                }
-                if (deepseekApiKey) {
-                    this.modelManager.setApiKey('deepseek', deepseekApiKey);
-                }
-                if (qwenApiKey) {
-                    this.modelManager.setApiKey('qwen', qwenApiKey);
-                }
-                if (kimiApiKey) {
-                    this.modelManager.setApiKey('kimi', kimiApiKey);
-                }
-                if (chatglmApiKey) {
-                    this.modelManager.setApiKey('chatglm', chatglmApiKey);
-                }
-                if (ollamaUrl) {
-                    localStorage.setItem('ollama_url', ollamaUrl);
-                }
-                if (cozeLocalUrl) {
-                    localStorage.setItem('coze_local_url', cozeLocalUrl);
-                }
-                
-                // 保存工具模型配置
-                const aiChatModel = document.getElementById('ai-chat-model').value;
-                const documentGenModel = document.getElementById('document-gen-model').value;
-                const contractReviewModel = document.getElementById('contract-review-model').value;
-                const contractParseModel = document.getElementById('contract-parse-model').value;
-                
-                this.modelManager.setToolModel('ai-chat', aiChatModel);
-                this.modelManager.setToolModel('document-gen', documentGenModel);
-                this.modelManager.setToolModel('contract-review', contractReviewModel);
-                this.modelManager.setToolModel('contract-parse', contractParseModel);
-                
-                // 保存工作流ID
-                const reviewWorkflowId = document.getElementById('review-workflow-id').value.trim();
-                const parseWorkflowId = document.getElementById('parse-workflow-id').value.trim();
-                const reviewLocalWorkflowId = document.getElementById('review-local-workflow-id').value.trim();
-                const parseLocalWorkflowId = document.getElementById('parse-local-workflow-id').value.trim();
-                
-                if (reviewWorkflowId) {
-                    localStorage.setItem('review_workflow_id', reviewWorkflowId);
-                }
-                if (parseWorkflowId) {
-                    localStorage.setItem('parse_workflow_id', parseWorkflowId);
-                }
-                if (reviewLocalWorkflowId) {
-                    localStorage.setItem('review_local_workflow_id', reviewLocalWorkflowId);
-                }
-                if (parseLocalWorkflowId) {
-                    localStorage.setItem('parse_local_workflow_id', parseLocalWorkflowId);
-                }
-                
-                // 设置统一设置标志
-                localStorage.setItem('use_unified_settings', 'true');
-                
-                // 同步到各个工具的设置
-                this.syncSettingsToTools();
-                
-                alert('设置已保存！');
-                this.updateSettingsStatus();
-            }
-            
-            syncSettingsToTools() {
-                // 同步API密钥到各个工具
-                const providers = ['google', 'openai', 'anthropic', 'coze', 'deepseek', 'qwen', 'kimi', 'chatglm'];
-                providers.forEach(provider => {
-                    const apiKey = this.modelManager.getApiKey(provider);
-                    if (apiKey) {
-                        // 根据提供商设置不同的localStorage键名
-                        switch (provider) {
-                            case 'google':
-                                localStorage.setItem('geminiApiKey', apiKey);
-                                break;
-                            case 'openai':
-                                localStorage.setItem('openaiApiKey', apiKey);
-                                break;
-                            case 'anthropic':
-                                localStorage.setItem('anthropicApiKey', apiKey);
-                                break;
-                            case 'coze':
-                                localStorage.setItem('cozeApiKey', apiKey);
-                                localStorage.setItem('contract-parse-api-key', apiKey);
-                                break;
-                            case 'deepseek':
-                                localStorage.setItem('deepseekApiKey', apiKey);
-                                break;
-                            case 'qwen':
-                                localStorage.setItem('qwenApiKey', apiKey);
-                                break;
-                            case 'kimi':
-                                localStorage.setItem('kimiApiKey', apiKey);
-                                break;
-                            case 'chatglm':
-                                localStorage.setItem('chatglmApiKey', apiKey);
-                                break;
-                            case 'ollama':
-                                // Ollama 不需要 API 密钥，但需要保存 URL
-                                const ollamaUrl = localStorage.getItem('ollama_url');
-                                if (ollamaUrl) {
-                                    localStorage.setItem('ollama_url', ollamaUrl);
-                                }
-                                break;
-                        }
-                    }
-                });
-                
-                // 同步工具模型配置
-                const tools = ['ai-chat', 'document-gen', 'contract-review', 'contract-parse'];
-                tools.forEach(tool => {
-                    const model = this.modelManager.getCurrentModel(tool);
-                    if (model) {
-                        localStorage.setItem(`${tool}_model`, model);
-                        // 兼容旧的键名
-                        if (tool === 'ai-chat' || tool === 'document-gen') {
-                            localStorage.setItem('geminiModel', model);
-                        }
-                    }
-                });
-                
-                // 同步工作流ID
-                const reviewWorkflowId = localStorage.getItem('review_workflow_id');
-                const parseWorkflowId = localStorage.getItem('parse_workflow_id');
-                const reviewLocalWorkflowId = localStorage.getItem('review_local_workflow_id');
-                const parseLocalWorkflowId = localStorage.getItem('parse_local_workflow_id');
-                
-                if (reviewWorkflowId) {
-                    localStorage.setItem('workflowId', reviewWorkflowId);
-                }
-                if (parseWorkflowId) {
-                    localStorage.setItem('contract-parse-workflow-id', parseWorkflowId);
-                }
-                if (reviewLocalWorkflowId) {
-                    localStorage.setItem('review_local_workflow_id', reviewLocalWorkflowId);
-                }
-                if (parseLocalWorkflowId) {
-                    localStorage.setItem('parse_local_workflow_id', parseLocalWorkflowId);
-                }
-            }
-            
-            updateSettingsStatus() {
-                // 更新API密钥状态
-                const providers = ['google', 'openai', 'anthropic', 'coze', 'coze-local', 'deepseek', 'qwen', 'kimi', 'chatglm', 'ollama'];
-                providers.forEach(provider => {
-                    const statusEl = document.getElementById(`${provider}-status`);
-                    const statusTextEl = document.getElementById(`${provider}-status-text`);
-                    
-                    if (provider === 'ollama') {
-                        // Ollama 特殊处理：检查服务是否运行
-                        const ollamaUrl = localStorage.getItem('ollama_url') || 'http://localhost:11434';
-                        if (ollamaUrl) {
-                            statusEl.className = 'status-indicator connected';
-                            statusTextEl.textContent = '已配置';
-                        } else {
-                            statusEl.className = 'status-indicator';
-                            statusTextEl.textContent = '未配置';
-                        }
-                    } else if (provider === 'coze-local') {
-                        // Coze 本地部署特殊处理：检查服务是否运行
-                        const cozeLocalUrl = localStorage.getItem('coze_local_url') || 'http://localhost:8080';
-                        if (cozeLocalUrl) {
-                            statusEl.className = 'status-indicator connected';
-                            statusTextEl.textContent = '已配置';
-                        } else {
-                            statusEl.className = 'status-indicator';
-                            statusTextEl.textContent = '未配置';
-                        }
-                    } else {
-                        const apiKey = this.modelManager.getApiKey(provider);
-                        if (apiKey) {
-                            statusEl.className = 'status-indicator connected';
-                            statusTextEl.textContent = '已配置';
-                        } else {
-                            statusEl.className = 'status-indicator';
-                            statusTextEl.textContent = '未配置';
-                        }
-                    }
-                });
-                
-                // 更新工具模型状态
-                const tools = ['ai-chat', 'document-gen', 'contract-review', 'contract-parse'];
-                tools.forEach(tool => {
-                    const currentModel = this.modelManager.getCurrentModel(tool);
-                    const statusEl = document.getElementById(`${tool}-model-status`);
-                    
-                    if (currentModel) {
-                        const modelInfo = this.modelManager.getModelInfo(currentModel);
-                        statusEl.textContent = modelInfo ? modelInfo.name : currentModel;
-                    } else {
-                        statusEl.textContent = '未配置';
-                    }
-                });
-            }
-            
-            async testAllApis() {
-                const testBtn = document.getElementById('test-all-apis');
-                const originalText = testBtn.textContent;
-                testBtn.textContent = '测试中...';
-                testBtn.disabled = true;
-                
-                try {
-                    const results = [];
-                    
-                    // 测试各个提供商
-                    const providers = ['google', 'openai', 'anthropic', 'coze', 'coze-local', 'deepseek', 'qwen', 'kimi', 'chatglm', 'ollama'];
-                    for (const provider of providers) {
-                        if (provider === 'ollama') {
-                            // Ollama 特殊处理
-                            const ollamaUrl = localStorage.getItem('ollama_url') || 'http://localhost:11434';
-                            if (ollamaUrl) {
-                                try {
-                                    const success = await this.testOllamaConnection(ollamaUrl);
-                                    results.push(`${provider}: ${success ? '成功' : '失败'}`);
-                                } catch (error) {
-                                    results.push(`${provider}: 失败 - ${error.message}`);
-                                }
-                            } else {
-                                results.push(`${provider}: 未配置`);
-                            }
-                        } else if (provider === 'coze-local') {
-                            // Coze 本地部署特殊处理
-                            const cozeLocalUrl = localStorage.getItem('coze_local_url') || 'http://localhost:8080';
-                            if (cozeLocalUrl) {
-                                try {
-                                    const success = await this.testCozeLocalConnection(cozeLocalUrl);
-                                    results.push(`${provider}: ${success ? '成功' : '失败'}`);
-                                } catch (error) {
-                                    results.push(`${provider}: 失败 - ${error.message}`);
-                                }
-                            } else {
-                                results.push(`${provider}: 未配置`);
-                            }
-                        } else {
-                            const apiKey = this.modelManager.getApiKey(provider);
-                            if (apiKey) {
-                                try {
-                                    const success = await this.modelManager.testProvider(provider);
-                                    results.push(`${provider}: ${success ? '成功' : '失败'}`);
-                                } catch (error) {
-                                    results.push(`${provider}: 失败 - ${error.message}`);
-                                }
-                            } else {
-                                results.push(`${provider}: 未配置`);
-                            }
-                        }
-                    }
-                    
-                    alert(`API测试结果:\n${results.join('\n')}`);
-                } catch (error) {
-                    alert(`API测试失败: ${error.message}`);
-                } finally {
-                    testBtn.textContent = originalText;
-                    testBtn.disabled = false;
-                }
-            }
-            
-            async testOllamaConnection(ollamaUrl) {
-                try {
-                    // 测试Ollama服务连接
-                    const response = await fetch(`${ollamaUrl}/api/tags`);
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}`);
-                    }
-                    
-                    const data = await response.json();
-                    const models = data.models || [];
-                    
-                    // 更新已安装模型列表
-                    const modelsListEl = document.getElementById('ollama-models-list');
-                    if (models.length > 0) {
-                        const modelNames = models.map(model => model.name).join(', ');
-                        modelsListEl.textContent = `已安装: ${modelNames}`;
-                    } else {
-                        modelsListEl.textContent = '未安装任何模型';
-                    }
-                    
-                    return true;
-                } catch (error) {
-                    console.error('Ollama连接测试失败:', error);
-                    const modelsListEl = document.getElementById('ollama-models-list');
-                    modelsListEl.textContent = '连接失败，请检查Ollama服务是否运行';
-                    return false;
-                }
-            }
-            
-            async testCozeLocalConnection(cozeLocalUrl) {
-                try {
-                    // 测试Coze本地服务连接
-                    const response = await fetch(`${cozeLocalUrl}/api/v1/health`);
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}`);
-                    }
-                    
-                    const data = await response.json();
-                    console.log('Coze本地服务连接成功:', data);
-                    
-                    return true;
-                } catch (error) {
-                    console.error('Coze本地连接测试失败:', error);
-                    return false;
-                }
-            }
+
 
         }
 

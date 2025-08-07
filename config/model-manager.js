@@ -13,7 +13,7 @@ class ModelManager {
     async init() {
         try {
             // 加载模型配置
-            const response = await fetch('config/models.json');
+            const response = await fetch('../config/models.json');
             this.config = await response.json();
             
             // 加载本地存储的API密钥
@@ -32,15 +32,9 @@ class ModelManager {
         // 从localStorage加载API密钥
         this.apiKeys = {
             google: localStorage.getItem('google_api_key') || '',
-            openai: localStorage.getItem('openai_api_key') || '',
-            anthropic: localStorage.getItem('anthropic_api_key') || '',
             coze: localStorage.getItem('coze_api_key') || '',
             'coze-local': '', // Coze 本地部署不需要 API 密钥
-            deepseek: localStorage.getItem('deepseek_api_key') || '',
-            qwen: localStorage.getItem('qwen_api_key') || '',
-            kimi: localStorage.getItem('kimi_api_key') || '',
-            chatglm: localStorage.getItem('chatglm_api_key') || '',
-            ollama: '' // Ollama 不需要 API 密钥
+            deepseek: localStorage.getItem('deepseek_api_key') || ''
         };
     }
 
@@ -131,22 +125,10 @@ class ModelManager {
         switch (provider) {
             case 'google':
                 return await this.callGoogleAPI(modelId, messages, options);
-            case 'openai':
-                return await this.callOpenAIAPI(modelId, messages, options);
-            case 'anthropic':
-                return await this.callAnthropicAPI(modelId, messages, options);
             case 'coze':
                 return await this.callCozeAPI(modelId, messages, options);
             case 'deepseek':
                 return await this.callDeepSeekAPI(modelId, messages, options);
-            case 'qwen':
-                return await this.callQwenAPI(modelId, messages, options);
-            case 'kimi':
-                return await this.callKimiAPI(modelId, messages, options);
-            case 'chatglm':
-                return await this.callChatGLMAPI(modelId, messages, options);
-            case 'ollama':
-                return await this.callOllamaAPI(modelId, messages, options);
             case 'coze-local':
                 return await this.callCozeLocalAPI(modelId, messages, options);
             default:
@@ -181,73 +163,9 @@ class ModelManager {
         return data.candidates[0].content.parts[0].text;
     }
 
-    async callOpenAIAPI(modelId, messages, options) {
-        const modelConfig = this.getModelConfig(modelId);
-        const apiKey = this.getApiKey('openai');
-        
-        const url = `${modelConfig.api_base}/chat/completions`;
-        
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: modelId,
-                messages: messages.map(msg => ({
-                    role: msg.role,
-                    content: msg.content
-                })),
-                stream: options.stream || false
-            })
-        });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error?.message || 'OpenAI API调用失败');
-        }
 
-        const data = await response.json();
-        return data.choices[0].message.content;
-    }
 
-    async callAnthropicAPI(modelId, messages, options) {
-        const modelConfig = this.getModelConfig(modelId);
-        const apiKey = this.getApiKey('anthropic');
-        
-        const url = `${modelConfig.api_base}/messages`;
-        
-        // 转换消息格式为Claude格式
-        const systemMessage = messages.find(msg => msg.role === 'system');
-        const userMessages = messages.filter(msg => msg.role !== 'system');
-        
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01'
-            },
-            body: JSON.stringify({
-                model: modelId,
-                max_tokens: options.max_tokens || 4096,
-                messages: userMessages.map(msg => ({
-                    role: msg.role,
-                    content: msg.content
-                })),
-                system: systemMessage?.content
-            })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error?.message || 'Anthropic API调用失败');
-        }
-
-        const data = await response.json();
-        return data.content[0].text;
-    }
 
     async callCozeAPI(modelId, messages, options) {
         const apiKey = this.getApiKey('coze');
@@ -345,145 +263,13 @@ class ModelManager {
         return data.choices[0].message.content;
     }
 
-    async callQwenAPI(modelId, messages, options) {
-        const modelConfig = this.getModelConfig(modelId);
-        const apiKey = this.getApiKey('qwen');
-        
-        const url = `${modelConfig.api_base}/services/aigc/text-generation/generation`;
-        
-        // 转换消息格式为Qwen格式
-        const input = messages.map(msg => ({
-            role: msg.role,
-            content: msg.content
-        }));
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: modelId,
-                input: {
-                    messages: input
-                },
-                parameters: {
-                    max_tokens: options.max_tokens || 4096,
-                    temperature: options.temperature || 0.7
-                }
-            })
-        });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Qwen API调用失败');
-        }
 
-        const data = await response.json();
-        return data.output.text;
-    }
 
-    async callKimiAPI(modelId, messages, options) {
-        const modelConfig = this.getModelConfig(modelId);
-        const apiKey = this.getApiKey('kimi');
-        
-        const url = `${modelConfig.api_base}/chat/completions`;
-        
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: modelId,
-                messages: messages.map(msg => ({
-                    role: msg.role,
-                    content: msg.content
-                })),
-                stream: options.stream || false,
-                max_tokens: options.max_tokens || 4096
-            })
-        });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error?.message || 'Kimi API调用失败');
-        }
 
-        const data = await response.json();
-        return data.choices[0].message.content;
-    }
 
-    async callChatGLMAPI(modelId, messages, options) {
-        const modelConfig = this.getModelConfig(modelId);
-        const apiKey = this.getApiKey('chatglm');
-        
-        const url = `${modelConfig.api_base}/chat/completions`;
-        
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: modelId,
-                messages: messages.map(msg => ({
-                    role: msg.role,
-                    content: msg.content
-                })),
-                stream: options.stream || false,
-                max_tokens: options.max_tokens || 4096
-            })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error?.message || 'ChatGLM API调用失败');
-        }
-
-        const data = await response.json();
-        return data.choices[0].message.content;
-    }
-
-    async callOllamaAPI(modelId, messages, options) {
-        const modelConfig = this.getModelConfig(modelId);
-        
-        const url = `${modelConfig.api_base}/api/chat`;
-        
-        // 转换消息格式为 Ollama 格式
-        const ollamaMessages = messages.map(msg => ({
-            role: msg.role,
-            content: msg.content
-        }));
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                model: modelId,
-                messages: ollamaMessages,
-                stream: options.stream || false,
-                options: {
-                    temperature: options.temperature || 0.7,
-                    top_p: options.top_p || 0.9,
-                    num_predict: options.max_tokens || 4096
-                }
-            })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Ollama API调用失败');
-        }
-
-        const data = await response.json();
-        return data.message.content;
-    }
 
     async callCozeLocalAPI(modelId, messages, options) {
         const modelConfig = this.getModelConfig(modelId);

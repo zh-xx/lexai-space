@@ -1,77 +1,5 @@
 {
   "models": {
-    "gemini-1.5-pro": {
-      "name": "Gemini 1.5 Pro",
-      "provider": "google",
-      "api_base": "https://generativelanguage.googleapis.com/v1beta",
-      "endpoint": "/models/{model}:generateContent",
-      "auth_type": "api_key",
-      "auth_param": "key",
-      "description": "Google Gemini 1.5 Pro 模型，适合复杂对话和长文本处理",
-      "capabilities": ["chat", "text-generation", "file-analysis"],
-      "max_tokens": 1000000,
-      "supports_streaming": true
-    },
-    "gemini-2.0-pro": {
-      "name": "Gemini 2.0 Pro",
-      "provider": "google",
-      "api_base": "https://generativelanguage.googleapis.com/v1beta",
-      "endpoint": "/models/{model}:generateContent",
-      "auth_type": "api_key",
-      "auth_param": "key",
-      "description": "Google Gemini 2.0 Pro 模型，最新版本，性能更强",
-      "capabilities": ["chat", "text-generation", "file-analysis"],
-      "max_tokens": 1000000,
-      "supports_streaming": true
-    },
-    "gemini-2.5-pro": {
-      "name": "Gemini 2.5 Pro",
-      "provider": "google",
-      "api_base": "https://generativelanguage.googleapis.com/v1beta",
-      "endpoint": "/models/{model}:generateContent",
-      "auth_type": "api_key",
-      "auth_param": "key",
-      "description": "Google Gemini 2.5 Pro 模型，最新版本，功能最全面",
-      "capabilities": ["chat", "text-generation", "file-analysis"],
-      "max_tokens": 1000000,
-      "supports_streaming": true
-    },
-    "gpt-4o": {
-      "name": "GPT-4o",
-      "provider": "openai",
-      "api_base": "https://api.openai.com/v1",
-      "endpoint": "/chat/completions",
-      "auth_type": "bearer_token",
-      "auth_param": "Authorization",
-      "description": "OpenAI GPT-4o 模型，强大的多模态能力",
-      "capabilities": ["chat", "text-generation", "file-analysis", "vision"],
-      "max_tokens": 128000,
-      "supports_streaming": true
-    },
-    "gpt-4o-mini": {
-      "name": "GPT-4o Mini",
-      "provider": "openai",
-      "api_base": "https://api.openai.com/v1",
-      "endpoint": "/chat/completions",
-      "auth_type": "bearer_token",
-      "auth_param": "Authorization",
-      "description": "OpenAI GPT-4o Mini 模型，性价比高",
-      "capabilities": ["chat", "text-generation", "file-analysis", "vision"],
-      "max_tokens": 128000,
-      "supports_streaming": true
-    },
-    "claude-3-5-sonnet": {
-      "name": "Claude 3.5 Sonnet",
-      "provider": "anthropic",
-      "api_base": "https://api.anthropic.com/v1",
-      "endpoint": "/messages",
-      "auth_type": "bearer_token",
-      "auth_param": "x-api-key",
-      "description": "Anthropic Claude 3.5 Sonnet 模型，擅长法律文档处理",
-      "capabilities": ["chat", "text-generation", "file-analysis"],
-      "max_tokens": 200000,
-      "supports_streaming": true
-    },
     "coze-workflow": {
       "name": "Coze 工作流 (在线)",
       "provider": "coze",
@@ -95,266 +23,14 @@
       "capabilities": ["workflow", "file-analysis", "custom-logic"],
       "max_tokens": null,
       "supports_streaming": true
-    },
-    "deepseek-chat": {
-      "name": "DeepSeek Chat",
-      "provider": "deepseek",
-      "api_base": "https://api.deepseek.com/v1",
-      "endpoint": "/chat/completions",
-      "auth_type": "bearer_token",
-      "auth_param": "Authorization",
-      "description": "DeepSeek Chat 模型，强大的中文理解和生成能力",
-      "capabilities": ["chat", "text-generation", "file-analysis"],
-      "max_tokens": 32768,
-      "supports_streaming": true
-    },
-    "deepseek-coder": {
-      "name": "DeepSeek Coder",
-      "provider": "deepseek",
-      "api_base": "https://api.deepseek.com/v1",
-      "endpoint": "/chat/completions",
-      "auth_type": "bearer_token",
-      "auth_param": "Authorization",
-      "description": "DeepSeek Coder 模型，专长于代码生成和分析",
-      "capabilities": ["chat", "text-generation", "code-generation", "file-analysis"],
-      "max_tokens": 32768,
-      "supports_streaming": true
-    },
-    "qwen-turbo": {
-      "name": "Qwen Turbo",
-      "provider": "qwen",
-      "api_base": "https://dashscope.aliyuncs.com/api/v1",
-      "endpoint": "/services/aigc/text-generation/generation",
-      "auth_type": "bearer_token",
-      "auth_param": "Authorization",
-      "description": "阿里云 Qwen Turbo 模型，快速响应",
-      "capabilities": ["chat", "text-generation"],
-      "max_tokens": 6144,
-      "supports_streaming": true
-    },
-    "qwen-plus": {
-      "name": "Qwen Plus",
-      "provider": "qwen",
-      "api_base": "https://dashscope.aliyuncs.com/api/v1",
-      "endpoint": "/services/aigc/text-generation/generation",
-      "auth_type": "bearer_token",
-      "auth_param": "Authorization",
-      "description": "阿里云 Qwen Plus 模型，更强的理解能力",
-      "capabilities": ["chat", "text-generation", "file-analysis"],
-      "max_tokens": 6144,
-      "supports_streaming": true
-    },
-    "qwen-max": {
-      "name": "Qwen Max",
-      "provider": "qwen",
-      "api_base": "https://dashscope.aliyuncs.com/api/v1",
-      "endpoint": "/services/aigc/text-generation/generation",
-      "auth_type": "bearer_token",
-      "auth_param": "Authorization",
-      "description": "阿里云 Qwen Max 模型，最强大的版本",
-      "capabilities": ["chat", "text-generation", "file-analysis", "vision"],
-      "max_tokens": 6144,
-      "supports_streaming": true
-    },
-    "kimi": {
-      "name": "Kimi",
-      "provider": "kimi",
-      "api_base": "https://kimi.moonshot.cn/api",
-      "endpoint": "/chat/completions",
-      "auth_type": "bearer_token",
-      "auth_param": "Authorization",
-      "description": "Moonshot AI Kimi 模型，强大的中文对话能力",
-      "capabilities": ["chat", "text-generation", "file-analysis", "vision"],
-      "max_tokens": 128000,
-      "supports_streaming": true
-    },
-    "chatglm3-6b": {
-      "name": "ChatGLM3-6B",
-      "provider": "chatglm",
-      "api_base": "https://open.bigmodel.cn/api/paas/v4",
-      "endpoint": "/chat/completions",
-      "auth_type": "bearer_token",
-      "auth_param": "Authorization",
-      "description": "智谱 AI ChatGLM3-6B 模型，轻量级但高效",
-      "capabilities": ["chat", "text-generation"],
-      "max_tokens": 8192,
-      "supports_streaming": true
-    },
-    "chatglm3-turbo": {
-      "name": "ChatGLM3 Turbo",
-      "provider": "chatglm",
-      "api_base": "https://open.bigmodel.cn/api/paas/v4",
-      "endpoint": "/chat/completions",
-      "auth_type": "bearer_token",
-      "auth_param": "Authorization",
-      "description": "智谱 AI ChatGLM3 Turbo 模型，快速响应",
-      "capabilities": ["chat", "text-generation"],
-      "max_tokens": 8192,
-      "supports_streaming": true
-    },
-    "chatglm4": {
-      "name": "ChatGLM4",
-      "provider": "chatglm",
-      "api_base": "https://open.bigmodel.cn/api/paas/v4",
-      "endpoint": "/chat/completions",
-      "auth_type": "bearer_token",
-      "auth_param": "Authorization",
-      "description": "智谱 AI ChatGLM4 模型，最新版本，功能最全面",
-      "capabilities": ["chat", "text-generation", "file-analysis", "vision"],
-      "max_tokens": 128000,
-      "supports_streaming": true
-    },
-    "llama3.1-8b": {
-      "name": "Llama 3.1 8B",
-      "provider": "ollama",
-      "api_base": "http://localhost:11434",
-      "endpoint": "/api/chat",
-      "auth_type": "none",
-      "auth_param": null,
-      "description": "Meta Llama 3.1 8B 模型，轻量级但高效",
-      "capabilities": ["chat", "text-generation"],
-      "max_tokens": 8192,
-      "supports_streaming": true
-    },
-    "llama3.1-70b": {
-      "name": "Llama 3.1 70B",
-      "provider": "ollama",
-      "api_base": "http://localhost:11434",
-      "endpoint": "/api/chat",
-      "auth_type": "none",
-      "auth_param": null,
-      "description": "Meta Llama 3.1 70B 模型，强大的推理能力",
-      "capabilities": ["chat", "text-generation", "reasoning"],
-      "max_tokens": 8192,
-      "supports_streaming": true
-    },
-    "qwen2.5-7b": {
-      "name": "Qwen2.5 7B",
-      "provider": "ollama",
-      "api_base": "http://localhost:11434",
-      "endpoint": "/api/chat",
-      "auth_type": "none",
-      "auth_param": null,
-      "description": "阿里云 Qwen2.5 7B 模型，中文理解能力强",
-      "capabilities": ["chat", "text-generation"],
-      "max_tokens": 32768,
-      "supports_streaming": true
-    },
-    "qwen2.5-32b": {
-      "name": "Qwen2.5 32B",
-      "provider": "ollama",
-      "api_base": "http://localhost:11434",
-      "endpoint": "/api/chat",
-      "auth_type": "none",
-      "auth_param": null,
-      "description": "阿里云 Qwen2.5 32B 模型，更强的理解能力",
-      "capabilities": ["chat", "text-generation", "reasoning"],
-      "max_tokens": 32768,
-      "supports_streaming": true
-    },
-    "deepseek-coder-6.7b": {
-      "name": "DeepSeek Coder 6.7B",
-      "provider": "ollama",
-      "api_base": "http://localhost:11434",
-      "endpoint": "/api/chat",
-      "auth_type": "none",
-      "auth_param": null,
-      "description": "DeepSeek Coder 6.7B 模型，专长于代码生成",
-      "capabilities": ["chat", "text-generation", "code-generation"],
-      "max_tokens": 16384,
-      "supports_streaming": true
-    },
-    "deepseek-coder-33b": {
-      "name": "DeepSeek Coder 33B",
-      "provider": "ollama",
-      "api_base": "http://localhost:11434",
-      "endpoint": "/api/chat",
-      "auth_type": "none",
-      "auth_param": null,
-      "description": "DeepSeek Coder 33B 模型，强大的代码生成能力",
-      "capabilities": ["chat", "text-generation", "code-generation"],
-      "max_tokens": 16384,
-      "supports_streaming": true
-    },
-    "codellama-7b": {
-      "name": "Code Llama 7B",
-      "provider": "ollama",
-      "api_base": "http://localhost:11434",
-      "endpoint": "/api/chat",
-      "auth_type": "none",
-      "auth_param": null,
-      "description": "Meta Code Llama 7B 模型，代码生成专家",
-      "capabilities": ["chat", "text-generation", "code-generation"],
-      "max_tokens": 16384,
-      "supports_streaming": true
-    },
-    "codellama-34b": {
-      "name": "Code Llama 34B",
-      "provider": "ollama",
-      "api_base": "http://localhost:11434",
-      "endpoint": "/api/chat",
-      "auth_type": "none",
-      "auth_param": null,
-      "description": "Meta Code Llama 34B 模型，最强大的代码生成模型",
-      "capabilities": ["chat", "text-generation", "code-generation"],
-      "max_tokens": 16384,
-      "supports_streaming": true
-    },
-    "mistral-7b": {
-      "name": "Mistral 7B",
-      "provider": "ollama",
-      "api_base": "http://localhost:11434",
-      "endpoint": "/api/chat",
-      "auth_type": "none",
-      "auth_param": null,
-      "description": "Mistral AI 7B 模型，平衡性能和效率",
-      "capabilities": ["chat", "text-generation"],
-      "max_tokens": 8192,
-      "supports_streaming": true
-    },
-    "mixtral-8x7b": {
-      "name": "Mixtral 8x7B",
-      "provider": "ollama",
-      "api_base": "http://localhost:11434",
-      "endpoint": "/api/chat",
-      "auth_type": "none",
-      "auth_param": null,
-      "description": "Mistral AI Mixtral 8x7B 模型，混合专家模型",
-      "capabilities": ["chat", "text-generation", "reasoning"],
-      "max_tokens": 32768,
-      "supports_streaming": true
-    },
-    "phi3-mini": {
-      "name": "Phi-3 Mini",
-      "provider": "ollama",
-      "api_base": "http://localhost:11434",
-      "endpoint": "/api/chat",
-      "auth_type": "none",
-      "auth_param": null,
-      "description": "Microsoft Phi-3 Mini 模型，轻量级但高效",
-      "capabilities": ["chat", "text-generation"],
-      "max_tokens": 8192,
-      "supports_streaming": true
-    },
-    "phi3-medium": {
-      "name": "Phi-3 Medium",
-      "provider": "ollama",
-      "api_base": "http://localhost:11434",
-      "endpoint": "/api/chat",
-      "auth_type": "none",
-      "auth_param": null,
-      "description": "Microsoft Phi-3 Medium 模型，更强的理解能力",
-      "capabilities": ["chat", "text-generation", "reasoning"],
-      "max_tokens": 8192,
-      "supports_streaming": true
     }
   },
   "tools": {
     "ai-chat": {
       "name": "AI 对话",
-      "default_model": "gemini-2.5-pro",
-      "supported_models": ["gemini-1.5-pro", "gemini-2.0-pro", "gemini-2.5-pro", "gpt-4o", "gpt-4o-mini", "claude-3-5-sonnet", "deepseek-chat", "deepseek-coder", "qwen-turbo", "qwen-plus", "qwen-max", "kimi", "chatglm3-6b", "chatglm3-turbo", "chatglm4", "llama3.1-8b", "llama3.1-70b", "qwen2.5-7b", "qwen2.5-32b", "deepseek-coder-6.7b", "deepseek-coder-33b", "codellama-7b", "codellama-34b", "mistral-7b", "mixtral-8x7b", "phi3-mini", "phi3-medium"],
-      "description": "与AI进行智能对话"
+      "default_model": "",
+      "supported_models": [],
+      "description": "与AI进行智能对话，支持验证通过的模型"
     },
     "contract-review": {
       "name": "合同审核",
@@ -364,9 +40,9 @@
     },
     "document-gen": {
       "name": "合同生成",
-      "default_model": "gemini-2.5-pro",
-      "supported_models": ["gemini-1.5-pro", "gemini-2.0-pro", "gemini-2.5-pro", "gpt-4o", "gpt-4o-mini", "claude-3-5-sonnet", "deepseek-chat", "deepseek-coder", "qwen-turbo", "qwen-plus", "qwen-max", "kimi", "chatglm3-6b", "chatglm3-turbo", "chatglm4", "llama3.1-8b", "llama3.1-70b", "qwen2.5-7b", "qwen2.5-32b", "deepseek-coder-6.7b", "deepseek-coder-33b", "codellama-7b", "codellama-34b", "mistral-7b", "mixtral-8x7b", "phi3-mini", "phi3-medium"],
-      "description": "智能生成法律文书"
+      "default_model": "",
+      "supported_models": [],
+      "description": "智能生成法律文书，支持验证通过的模型"
     },
     "contract-parse": {
       "name": "合同解析",
@@ -376,21 +52,6 @@
     }
   },
   "providers": {
-    "google": {
-      "name": "Google",
-      "api_key_help": "在 Google AI Studio 获取 API 密钥",
-      "api_key_url": "https://makersuite.google.com/app/apikey"
-    },
-    "openai": {
-      "name": "OpenAI",
-      "api_key_help": "在 OpenAI 平台获取 API 密钥",
-      "api_key_url": "https://platform.openai.com/api-keys"
-    },
-    "anthropic": {
-      "name": "Anthropic",
-      "api_key_help": "在 Anthropic 平台获取 API 密钥",
-      "api_key_url": "https://console.anthropic.com/"
-    },
     "coze": {
       "name": "Coze (在线)",
       "api_key_help": "在 Coze 平台获取 API 密钥",
@@ -400,31 +61,6 @@
       "name": "Coze (本地)",
       "api_key_help": "本地部署的 Coze 服务，无需 API 密钥",
       "api_key_url": "https://github.com/coze-ai/coze-local"
-    },
-    "deepseek": {
-      "name": "DeepSeek",
-      "api_key_help": "在 DeepSeek 平台获取 API 密钥",
-      "api_key_url": "https://platform.deepseek.com/"
-    },
-    "qwen": {
-      "name": "阿里云 Qwen",
-      "api_key_help": "在阿里云 DashScope 获取 API 密钥",
-      "api_key_url": "https://dashscope.console.aliyun.com/"
-    },
-    "kimi": {
-      "name": "Moonshot Kimi",
-      "api_key_help": "在 Moonshot AI 平台获取 API 密钥",
-      "api_key_url": "https://kimi.moonshot.cn/"
-    },
-    "chatglm": {
-      "name": "智谱 AI",
-      "api_key_help": "在智谱 AI 平台获取 API 密钥",
-      "api_key_url": "https://open.bigmodel.cn/"
-    },
-    "ollama": {
-      "name": "Ollama (本地)",
-      "api_key_help": "本地 Ollama 服务，无需 API 密钥",
-      "api_key_url": "https://ollama.ai/"
     }
   }
 } 

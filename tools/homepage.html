@@ -717,18 +717,29 @@
         }
         
         function updateModelIndicator() {
-            const selectedModel = localStorage.getItem('geminiModel') || 'gemini-2.5-pro';
-            const modelNames = {
-                'gemini-2.5-pro': 'Gemini 2.5 Pro',
-                'gemini-2.5-flash': 'Gemini 2.5 Flash',
-                'gemini-2.5-flash-lite': 'Gemini 2.5 Flash-Lite',
-                'gemini-2.0-flash-exp': 'Gemini 2.0 Flash',
-                'gemini-2.0-pro-exp': 'Gemini 2.0 Pro',
-                'gemini-1.5-flash': 'Gemini 1.5 Flash',
-                'gemini-1.5-pro': 'Gemini 1.5 Pro',
-                'gemini-1.0-pro': 'Gemini 1.0 Pro'
-            };
-            modelIndicator.textContent = `使用模型: ${modelNames[selectedModel] || selectedModel}`;
+            const selectedModel = getCurrentModel();
+            let modelDisplayName = selectedModel;
+            
+            // 检查是否是验证通过的模型
+            const verifiedModels = JSON.parse(localStorage.getItem('verified_models') || '[]');
+            const verifiedModel = verifiedModels.find(m => m.id === selectedModel);
+            
+            if (verifiedModel) {
+                // 使用验证通过的模型名称
+                modelDisplayName = verifiedModel.modelName;
+            } else {
+                // 使用预定义的模型名称映射
+                const modelNames = {
+                    'gemini-1.5-pro': 'Gemini 1.5 Pro',
+                    'gemini-2.0-pro': 'Gemini 2.0 Pro',
+                    'gemini-2.5-pro': 'Gemini 2.5 Pro',
+                    'deepseek-chat': 'DeepSeek Chat',
+                    'deepseek-coder': 'DeepSeek Coder'
+                };
+                modelDisplayName = modelNames[selectedModel] || selectedModel;
+            }
+            
+            modelIndicator.textContent = `使用模型: ${modelDisplayName} | 点击标题可编辑`;
         }
 
         // --- Chat Logic ---
@@ -867,7 +878,26 @@
             const selectedModel = getCurrentModel();
             
             try {
-                // 获取模型配置
+                // 首先检查是否是验证通过的模型
+                const verifiedModels = JSON.parse(localStorage.getItem('verified_models') || '[]');
+                const verifiedModel = verifiedModels.find(m => m.id === selectedModel);
+                
+                if (verifiedModel) {
+                    // 使用验证通过的模型
+                    console.log('使用验证通过的模型:', verifiedModel);
+                    
+                    // 根据提供商调用对应的API
+                    switch (verifiedModel.provider) {
+                        case 'deepseek':
+                            return await callDeepSeekAPI(messages, verifiedModel.modelName, verifiedModel.apiKey);
+                        case 'gemini':
+                            return await callGoogleAPI(messages, verifiedModel.modelName, verifiedModel.apiKey);
+                        default:
+                            throw new Error(`不支持的提供商: ${verifiedModel.provider}`);
+                    }
+                }
+                
+                // 如果不是验证通过的模型，尝试从配置文件获取
                 const response = await fetch('/config/models.json');
                 const config = await response.json();
                 const modelConfig = config.models[selectedModel];
@@ -1395,6 +1425,14 @@
             } else {
                 startNewChat();
             }
+            
+            // 监听设置更新消息
+            window.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'llm_settings_updated') {
+                    console.log('AI对话工具收到LLM设置更新消息:', event.data);
+                    updateModelIndicator();
+                }
+            });
         }
 
         main();

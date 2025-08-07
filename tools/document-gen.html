@@ -374,6 +374,18 @@
             background: #38A169;
             color: white;
         }
+        
+        /* 模型指示器样式 */
+        .model-indicator {
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            padding: 6px 12px;
+            background: rgba(90, 103, 216, 0.1);
+            border-radius: 6px;
+            display: inline-block;
+            border-left: 3px solid var(--primary-color);
+        }
     </style>
 </head>
 <body>
@@ -381,7 +393,7 @@
         <div class="right-panel">
             <div class="app-header">
                 <h1><i class="fa-solid fa-file-pen"></i> 合同生成工具</h1>
-
+                <div class="model-indicator" id="model-indicator">使用模型: 未配置 | 请在LLM设置中配置模型</div>
             </div>
             <div class="action-card">
                 <form id="contract-form">
@@ -601,6 +613,33 @@
             return localStorage.getItem('geminiModel') || 'gemini-2.5-pro';
         }
 
+        function updateModelIndicator() {
+            const selectedModel = getCurrentModel();
+            const modelIndicator = document.getElementById('model-indicator');
+            let modelDisplayName = selectedModel;
+            
+            // 检查是否是验证通过的模型
+            const verifiedModels = JSON.parse(localStorage.getItem('verified_models') || '[]');
+            const verifiedModel = verifiedModels.find(m => m.id === selectedModel);
+            
+            if (verifiedModel) {
+                // 使用验证通过的模型名称
+                modelDisplayName = verifiedModel.modelName;
+            } else {
+                // 使用预定义的模型名称映射
+                const modelNames = {
+                    'gemini-1.5-pro': 'Gemini 1.5 Pro',
+                    'gemini-2.0-pro': 'Gemini 2.0 Pro',
+                    'gemini-2.5-pro': 'Gemini 2.5 Pro',
+                    'deepseek-chat': 'DeepSeek Chat',
+                    'deepseek-coder': 'DeepSeek Coder'
+                };
+                modelDisplayName = modelNames[selectedModel] || selectedModel;
+            }
+            
+            modelIndicator.textContent = `使用模型: ${modelDisplayName}`;
+        }
+
 
 
 
@@ -649,11 +688,8 @@
             const apiKey = getApiKey();
             const selectedModel = getCurrentModel();
             
-            // 检查API密钥（Ollama模型不需要API密钥）
-            if (!apiKey && !selectedModel.startsWith('llama') && !selectedModel.startsWith('qwen2') && 
-                !selectedModel.startsWith('deepseek-coder') && !selectedModel.startsWith('codellama') && 
-                !selectedModel.startsWith('mistral') && !selectedModel.startsWith('mixtral') && 
-                !selectedModel.startsWith('phi')) {
+            // 检查API密钥
+            if (!apiKey) {
                 alert('请先在主框架的"模型设置"中配置您的API密钥。');
                 return;
             }
@@ -882,7 +918,26 @@
             const selectedModel = getCurrentModel();
             
             try {
-                // 获取模型配置
+                // 首先检查是否是验证通过的模型
+                const verifiedModels = JSON.parse(localStorage.getItem('verified_models') || '[]');
+                const verifiedModel = verifiedModels.find(m => m.id === selectedModel);
+                
+                if (verifiedModel) {
+                    // 使用验证通过的模型
+                    console.log('使用验证通过的模型:', verifiedModel);
+                    
+                    // 根据提供商调用对应的API
+                    switch (verifiedModel.provider) {
+                        case 'deepseek':
+                            return await callDeepSeekAPI(messages, verifiedModel.modelName, verifiedModel.apiKey);
+                        case 'gemini':
+                            return await callGoogleAPI(messages, verifiedModel.modelName, verifiedModel.apiKey);
+                        default:
+                            throw new Error(`不支持的提供商: ${verifiedModel.provider}`);
+                    }
+                }
+                
+                // 如果不是验证通过的模型，尝试从配置文件获取
                 const response = await fetch('/config/models.json');
                 const config = await response.json();
                 const modelConfig = config.models[selectedModel];
@@ -1175,11 +1230,8 @@
             const apiKey = getApiKey();
             const selectedModel = getCurrentModel();
             
-            // 检查API密钥（Ollama模型不需要API密钥）
-            if (!apiKey && !selectedModel.startsWith('llama') && !selectedModel.startsWith('qwen2') && 
-                !selectedModel.startsWith('deepseek-coder') && !selectedModel.startsWith('codellama') && 
-                !selectedModel.startsWith('mistral') && !selectedModel.startsWith('mixtral') && 
-                !selectedModel.startsWith('phi')) {
+            // 检查API密钥
+            if (!apiKey) {
                 alert('请先在主框架的"模型设置"中配置您的API密钥。');
                 return;
             }
@@ -1262,6 +1314,25 @@
             }
         });
 
+        // 监听工作流设置更新消息
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'workflow_settings_updated') {
+                console.log('合同生成工具收到工作流设置更新消息:', event.data);
+                // 可以在这里添加设置更新后的处理逻辑
+                // 例如重新加载模型配置或更新UI状态
+            }
+        });
+
+        // 监听LLM设置更新消息
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'llm_settings_updated') {
+                console.log('合同生成工具收到LLM设置更新消息:', event.data);
+                updateModelIndicator();
+            }
+        });
+
+        // 初始化模型指示器
+        updateModelIndicator();
 
     });
     </script>
