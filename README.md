@@ -53,15 +53,28 @@
 ## 📁 项目结构
 
 ```
-contract_review/
+lexai.space/
 ├── index.html                # 主框架页面（统一工作台）
 ├── tools/                    # 工具目录
 │   ├── homepage.html         # AI对话工具
 │   ├── contract-review.html  # 合同审核工具（完整实现）
 │   ├── document-gen.html     # 合同生成工具（基础框架）
 │   └── contract-parse.html   # 合同解析工具（基础框架）
+├── config/                   # 配置文件目录
+│   ├── models.json          # 模型配置文件
+│   ├── model-manager.js     # 模型管理器
+│   └── api-key-manager.js   # API密钥管理器
+├── docs/                    # 文档目录
+│   └── adding-new-llm-provider.md  # 添加新LLM服务商指南
 └── README.md                # 项目说明
 ```
+
+## 🔧 开发指南
+
+### 添加新的LLM服务商
+如果您需要添加新的LLM服务商，请参考：[添加新LLM服务商指南](docs/adding-new-llm-provider.md)
+
+该指南详细说明了如何按照项目现有的硬编码模式添加新的LLM服务商，支持动态模型配置。
 
 ## 🚀 快速开始
 

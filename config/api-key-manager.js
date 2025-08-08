@@ -20,7 +20,10 @@ class ApiKeyManager {
             google: localStorage.getItem('google_api_key') || '',
             coze: localStorage.getItem('coze_api_key') || '',
             'coze-local': localStorage.getItem('coze_local_api_key') || '',
-            deepseek: localStorage.getItem('deepseek_api_key') || ''
+            deepseek: localStorage.getItem('deepseek_api_key') || '',
+            kimi: localStorage.getItem('kimi_api_key') || '', // 新增Kimi API密钥
+            qwen: localStorage.getItem('qwen_api_key') || '', // 新增Qwen API密钥
+            openrouter: localStorage.getItem('openrouter_api_key') || '' // 新增OpenRouter API密钥
         };
     }
 
@@ -88,7 +91,7 @@ class ApiKeyManager {
         const status = {};
         
         // 检查需要API密钥的提供商
-        ['google', 'coze', 'deepseek', 'coze-local'].forEach(provider => {
+        ['google', 'coze', 'deepseek', 'coze-local', 'kimi', 'qwen', 'openrouter'].forEach(provider => {
             status[provider] = {
                 configured: this.isApiKeyConfigured(provider),
                 hasKey: !!this.getApiKey(provider),
@@ -110,6 +113,12 @@ class ApiKeyManager {
                 return this.validateCozeApiKey(apiKey);
             case 'deepseek':
                 return this.validateDeepSeekApiKey(apiKey);
+            case 'kimi':
+                return this.validateKimiApiKey(apiKey);
+            case 'qwen':
+                return this.validateQwenApiKey(apiKey);
+            case 'openrouter':
+                return this.validateOpenRouterApiKey(apiKey);
             default:
                 return { valid: true, message: '格式正确' };
         }
@@ -135,6 +144,30 @@ class ApiKeyManager {
     validateDeepSeekApiKey(apiKey) {
         if (apiKey.length < 10) {
             return { valid: false, message: 'DeepSeek API密钥格式不正确' };
+        }
+        return { valid: true, message: '格式正确' };
+    }
+
+    // 验证Kimi API密钥
+    validateKimiApiKey(apiKey) {
+        if (apiKey.length < 10) {
+            return { valid: false, message: 'Kimi API密钥格式不正确' };
+        }
+        return { valid: true, message: '格式正确' };
+    }
+
+    // 验证Qwen API密钥
+    validateQwenApiKey(apiKey) {
+        if (apiKey.length < 10) {
+            return { valid: false, message: 'Qwen API密钥格式不正确' };
+        }
+        return { valid: true, message: '格式正确' };
+    }
+
+    // 验证OpenRouter API密钥
+    validateOpenRouterApiKey(apiKey) {
+        if (apiKey.length < 10) {
+            return { valid: false, message: 'OpenRouter API密钥格式不正确' };
         }
         return { valid: true, message: '格式正确' };
     }

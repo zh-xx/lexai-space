@@ -427,6 +427,18 @@
             background: #4285f4;
         }
 
+        .model-tag.kimi {
+            background: #10b981;
+        }
+
+        .model-tag.qwen {
+            background: #ff6b35;
+        }
+
+        .model-tag.openrouter {
+            background: #6366f1;
+        }
+
         /* 删除按钮样式 */
         .model-tag .delete-btn {
             background: rgba(255, 255, 255, 0.2);
@@ -501,6 +513,40 @@
                     </div>
                 </div>
 
+                <!-- Kimi API -->
+                <div class="config-card">
+                    <div class="config-header">
+                        <div class="config-info">
+                            <h4>Kimi API</h4>
+                            <p>支持 Kimi K2 系列模型</p>
+                        </div>
+                        <div class="status-indicator" id="kimi-status"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">API 密钥</label>
+                        <input type="password" class="form-input" id="kimi-api-key" 
+                               placeholder="请输入您的 Kimi API 密钥">
+                        <div class="help-text">
+                            <a href="https://kimi.moonshot.cn/" target="_blank">获取 Kimi API 密钥</a>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">模型名称</label>
+                        <input type="text" class="form-input" id="kimi-model-name" 
+                               placeholder="例如：kimi-k2-0711-preview">
+                        <div class="help-text">输入您要使用的模型名称</div>
+                    </div>
+
+                    <div class="form-group">
+                        <button class="btn btn-secondary" id="test-kimi-btn">
+                            <i class="fa-solid fa-vial"></i> 验证 API
+                        </button>
+                        <span class="validation-status" id="kimi-validation-status"></span>
+                    </div>
+                </div>
+
                 <!-- Google Gemini API -->
                 <div class="config-card">
                     <div class="config-header">
@@ -532,6 +578,74 @@
                             <i class="fa-solid fa-vial"></i> 验证 API
                         </button>
                         <span class="validation-status" id="gemini-validation-status"></span>
+                    </div>
+                </div>
+
+                <!-- Qwen API -->
+                <div class="config-card">
+                    <div class="config-header">
+                        <div class="config-info">
+                            <h4>Qwen API</h4>
+                            <p>支持 Qwen 系列模型</p>
+                        </div>
+                        <div class="status-indicator" id="qwen-status"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">API 密钥</label>
+                        <input type="password" class="form-input" id="qwen-api-key" 
+                               placeholder="请输入您的 Qwen API 密钥">
+                        <div class="help-text">
+                            <a href="https://dashscope.console.aliyun.com/" target="_blank">获取 Qwen API 密钥</a>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">模型名称</label>
+                        <input type="text" class="form-input" id="qwen-model-name" 
+                               placeholder="例如：qwen-plus, qwen-turbo">
+                        <div class="help-text">输入您要使用的模型名称</div>
+                    </div>
+
+                    <div class="form-group">
+                        <button class="btn btn-secondary" id="test-qwen-btn">
+                            <i class="fa-solid fa-vial"></i> 验证 API
+                        </button>
+                        <span class="validation-status" id="qwen-validation-status"></span>
+                    </div>
+                </div>
+
+                <!-- OpenRouter API -->
+                <div class="config-card">
+                    <div class="config-header">
+                        <div class="config-info">
+                            <h4>OpenRouter API</h4>
+                            <p>支持多种AI模型，包括OpenAI、Anthropic、Google等</p>
+                        </div>
+                        <div class="status-indicator" id="openrouter-status"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">API 密钥</label>
+                        <input type="password" class="form-input" id="openrouter-api-key" 
+                               placeholder="请输入您的 OpenRouter API 密钥">
+                        <div class="help-text">
+                            <a href="https://openrouter.ai/keys" target="_blank">获取 OpenRouter API 密钥</a>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">模型名称</label>
+                        <input type="text" class="form-input" id="openrouter-model-name" 
+                               placeholder="例如：openai/gpt-4o, anthropic/claude-3-5-sonnet">
+                        <div class="help-text">输入您要使用的模型名称</div>
+                    </div>
+
+                    <div class="form-group">
+                        <button class="btn btn-secondary" id="test-openrouter-btn">
+                            <i class="fa-solid fa-vial"></i> 验证 API
+                        </button>
+                        <span class="validation-status" id="openrouter-validation-status"></span>
                     </div>
                 </div>
             </div>
@@ -643,10 +757,16 @@
                     // 加载API密钥
                     document.getElementById('deepseek-api-key').value = localStorage.getItem('deepseek_api_key') || '';
                     document.getElementById('gemini-api-key').value = localStorage.getItem('google_api_key') || '';
+                    document.getElementById('kimi-api-key').value = localStorage.getItem('kimi_api_key') || '';
+                    document.getElementById('qwen-api-key').value = localStorage.getItem('qwen_api_key') || '';
+                    document.getElementById('openrouter-api-key').value = localStorage.getItem('openrouter_api_key') || '';
                     
                     // 加载模型名称
                     document.getElementById('deepseek-model-name').value = localStorage.getItem('deepseek_model_name') || '';
                     document.getElementById('gemini-model-name').value = localStorage.getItem('gemini_model_name') || '';
+                    document.getElementById('kimi-model-name').value = localStorage.getItem('kimi_model_name') || '';
+                    document.getElementById('qwen-model-name').value = localStorage.getItem('qwen_model_name') || '';
+                    document.getElementById('openrouter-model-name').value = localStorage.getItem('openrouter_model_name') || '';
                     
                     // 加载工具模型配置
                     document.getElementById('ai-chat-model').value = localStorage.getItem('ai-chat_model') || '';
@@ -696,6 +816,27 @@
                         console.log('Gemini验证按钮事件绑定成功');
                     }
 
+                    // Kimi验证按钮
+                    const testKimiBtn = document.getElementById('test-kimi-btn');
+                    if (testKimiBtn) {
+                        testKimiBtn.addEventListener('click', () => this.testKimiApi());
+                        console.log('Kimi验证按钮事件绑定成功');
+                    }
+
+                    // Qwen验证按钮
+                    const testQwenBtn = document.getElementById('test-qwen-btn');
+                    if (testQwenBtn) {
+                        testQwenBtn.addEventListener('click', () => this.testQwenApi());
+                        console.log('Qwen验证按钮事件绑定成功');
+                    }
+
+                    // OpenRouter验证按钮
+                    const testOpenRouterBtn = document.getElementById('test-openrouter-btn');
+                    if (testOpenRouterBtn) {
+                        testOpenRouterBtn.addEventListener('click', () => this.testOpenRouterApi());
+                        console.log('OpenRouter验证按钮事件绑定成功');
+                    }
+
                     // 弹窗事件
                     const modalClose = document.getElementById('modal-close');
                     const modalOk = document.getElementById('modal-ok');
@@ -730,16 +871,28 @@
                     // 保存API密钥
                     const deepseekApiKey = document.getElementById('deepseek-api-key').value.trim();
                     const geminiApiKey = document.getElementById('gemini-api-key').value.trim();
+                    const kimiApiKey = document.getElementById('kimi-api-key').value.trim();
+                    const qwenApiKey = document.getElementById('qwen-api-key').value.trim();
+                    const openrouterApiKey = document.getElementById('openrouter-api-key').value.trim();
                     
                     if (deepseekApiKey) localStorage.setItem('deepseek_api_key', deepseekApiKey);
                     if (geminiApiKey) localStorage.setItem('google_api_key', geminiApiKey);
+                    if (kimiApiKey) localStorage.setItem('kimi_api_key', kimiApiKey);
+                    if (qwenApiKey) localStorage.setItem('qwen_api_key', qwenApiKey);
+                    if (openrouterApiKey) localStorage.setItem('openrouter_api_key', openrouterApiKey);
                     
                     // 保存模型名称
                     const deepseekModelName = document.getElementById('deepseek-model-name').value.trim();
                     const geminiModelName = document.getElementById('gemini-model-name').value.trim();
+                    const kimiModelName = document.getElementById('kimi-model-name').value.trim();
+                    const qwenModelName = document.getElementById('qwen-model-name').value.trim();
+                    const openrouterModelName = document.getElementById('openrouter-model-name').value.trim();
 
                     if (deepseekModelName) localStorage.setItem('deepseek_model_name', deepseekModelName);
                     if (geminiModelName) localStorage.setItem('gemini_model_name', geminiModelName);
+                    if (kimiModelName) localStorage.setItem('kimi_model_name', kimiModelName);
+                    if (qwenModelName) localStorage.setItem('qwen_model_name', qwenModelName);
+                    if (openrouterModelName) localStorage.setItem('openrouter_model_name', openrouterModelName);
                     
                     // 保存工具模型配置
                     const aiChatModel = document.getElementById('ai-chat-model').value;
@@ -770,11 +923,17 @@
                             data: {
                                 apiKeys: {
                                     deepseek: localStorage.getItem('deepseek_api_key'),
-                                    gemini: localStorage.getItem('google_api_key')
+                                    gemini: localStorage.getItem('google_api_key'),
+                                    kimi: localStorage.getItem('kimi_api_key'),
+                                    qwen: localStorage.getItem('qwen_api_key'),
+                                    openrouter: localStorage.getItem('openrouter_api_key')
                                 },
                                 modelNames: {
                                     deepseek: localStorage.getItem('deepseek_model_name'),
-                                    gemini: localStorage.getItem('gemini_model_name')
+                                    gemini: localStorage.getItem('gemini_model_name'),
+                                    kimi: localStorage.getItem('kimi_model_name'),
+                                    qwen: localStorage.getItem('qwen_model_name'),
+                                    openrouter: localStorage.getItem('openrouter_model_name')
                                 },
                                 verifiedModels: JSON.parse(localStorage.getItem('verified_models') || '[]'),
                                 toolModels: {
@@ -798,11 +957,19 @@
                     // 更新API密钥状态
                     const deepseekApiKey = localStorage.getItem('deepseek_api_key');
                     const geminiApiKey = localStorage.getItem('google_api_key');
+                    const kimiApiKey = localStorage.getItem('kimi_api_key');
+                    const qwenApiKey = localStorage.getItem('qwen_api_key');
                     
                     // DeepSeek状态
                     const deepseekStatus = document.getElementById('deepseek-status');
                     if (deepseekStatus) {
                         deepseekStatus.className = `status-indicator ${deepseekApiKey ? 'connected' : ''}`;
+                    }
+                    
+                    // Kimi状态
+                    const kimiStatus = document.getElementById('kimi-status');
+                    if (kimiStatus) {
+                        kimiStatus.className = `status-indicator ${kimiApiKey ? 'connected' : ''}`;
                     }
                     
                     // Google状态
@@ -811,12 +978,32 @@
                         geminiStatus.className = `status-indicator ${geminiApiKey ? 'connected' : ''}`;
                     }
                     
+                    // Qwen状态
+                    const qwenStatus = document.getElementById('qwen-status');
+                    if (qwenStatus) {
+                        qwenStatus.className = `status-indicator ${qwenApiKey ? 'connected' : ''}`;
+                    }
+                    
+                    // OpenRouter状态
+                    const openRouterStatus = document.getElementById('openrouter-status');
+                    if (openRouterStatus) {
+                        const openRouterApiKey = localStorage.getItem('openrouter_api_key');
+                        openRouterStatus.className = `status-indicator ${openRouterApiKey ? 'connected' : ''}`;
+                    }
+                    
                     // 更新工具模型状态
                     const aiChatModel = localStorage.getItem('ai-chat_model') || '';
                     const documentGenModel = localStorage.getItem('document-gen_model') || '';
                     
                     const aiChatStatus = document.getElementById('ai-chat-model-status');
                     const documentGenStatus = document.getElementById('document-gen-model-status');
+                    
+                    // 调试信息
+                    console.log('当前设置状态:', {
+                        kimiApiKey: localStorage.getItem('kimi_api_key') ? '已设置' : '未设置',
+                        aiChatModel: aiChatModel || '未设置',
+                        verifiedModels: JSON.parse(localStorage.getItem('verified_models') || '[]')
+                    });
                     
                     if (aiChatStatus) {
                         aiChatStatus.textContent = aiChatModel ? this.getModelDisplayName(aiChatModel) : '未设置';
@@ -840,7 +1027,10 @@
                     'gemini-2.0-pro': 'Gemini 2.0 Pro',
                     'gemini-1.5-pro': 'Gemini 1.5 Pro',
                     'deepseek-chat': 'DeepSeek Chat',
-                    'deepseek-coder': 'DeepSeek Coder'
+                    'deepseek-coder': 'DeepSeek Coder',
+                    'qwen-plus': 'Qwen Plus',
+                    'qwen-turbo': 'Qwen Turbo',
+                    'qwen-max': 'Qwen Max'
                 };
                 return modelNames[modelId] || modelId;
             }
@@ -945,6 +1135,156 @@
                 }
             }
 
+            // 测试Kimi API
+            async testKimiApi() {
+                const apiKey = document.getElementById('kimi-api-key').value.trim();
+                const modelName = document.getElementById('kimi-model-name').value.trim();
+                const statusElement = document.getElementById('kimi-validation-status');
+                const testBtn = document.getElementById('test-kimi-btn');
+
+                if (!apiKey || !modelName) {
+                    statusElement.textContent = '请先输入API密钥和模型名称';
+                    statusElement.className = 'validation-status warning';
+                    return;
+                }
+
+                testBtn.disabled = true;
+                testBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 验证中...';
+                statusElement.textContent = '正在验证...';
+                statusElement.className = 'validation-status warning';
+
+                try {
+                    const response = await fetch('https://api.moonshot.cn/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: modelName,
+                            messages: [{ role: 'user', content: 'Hello, Kimi!' }],
+                            temperature: 0.6,
+                            max_tokens: 100
+                        })
+                    });
+
+                    if (response.ok) {
+                        statusElement.textContent = '验证成功！';
+                        statusElement.className = 'validation-status success';
+                        this.addVerifiedModel('kimi', modelName, apiKey);
+                    } else {
+                        statusElement.textContent = `验证失败: ${response.status} ${response.statusText}`;
+                        statusElement.className = 'validation-status error';
+                    }
+                } catch (error) {
+                    statusElement.textContent = `验证失败: ${error.message}`;
+                    statusElement.className = 'validation-status error';
+                } finally {
+                    testBtn.disabled = false;
+                    testBtn.innerHTML = '<i class="fa-solid fa-vial"></i> 验证 API';
+                }
+            }
+
+            // 测试Qwen API
+            async testQwenApi() {
+                const apiKey = document.getElementById('qwen-api-key').value.trim();
+                const modelName = document.getElementById('qwen-model-name').value.trim();
+                const statusElement = document.getElementById('qwen-validation-status');
+                const testBtn = document.getElementById('test-qwen-btn');
+
+                if (!apiKey || !modelName) {
+                    statusElement.textContent = '请先输入API密钥和模型名称';
+                    statusElement.className = 'validation-status warning';
+                    return;
+                }
+
+                testBtn.disabled = true;
+                testBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 验证中...';
+                statusElement.textContent = '正在验证...';
+                statusElement.className = 'validation-status warning';
+
+                try {
+                    const response = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: modelName,
+                            messages: [{ role: 'user', content: 'Hello, Qwen!' }],
+                            temperature: 0.7,
+                            max_tokens: 100
+                        })
+                    });
+
+                    if (response.ok) {
+                        statusElement.textContent = '验证成功！';
+                        statusElement.className = 'validation-status success';
+                        this.addVerifiedModel('qwen', modelName, apiKey);
+                    } else {
+                        statusElement.textContent = `验证失败: ${response.status} ${response.statusText}`;
+                        statusElement.className = 'validation-status error';
+                    }
+                } catch (error) {
+                    statusElement.textContent = `验证失败: ${error.message}`;
+                    statusElement.className = 'validation-status error';
+                } finally {
+                    testBtn.disabled = false;
+                    testBtn.innerHTML = '<i class="fa-solid fa-vial"></i> 验证 API';
+                }
+            }
+
+            // 测试OpenRouter API
+            async testOpenRouterApi() {
+                const apiKey = document.getElementById('openrouter-api-key').value.trim();
+                const modelName = document.getElementById('openrouter-model-name').value.trim();
+                const statusElement = document.getElementById('openrouter-validation-status');
+                const testBtn = document.getElementById('test-openrouter-btn');
+
+                if (!apiKey || !modelName) {
+                    statusElement.textContent = '请先输入API密钥和模型名称';
+                    statusElement.className = 'validation-status warning';
+                    return;
+                }
+
+                testBtn.disabled = true;
+                testBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 验证中...';
+                statusElement.textContent = '正在验证...';
+                statusElement.className = 'validation-status warning';
+
+                try {
+                    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: modelName,
+                            messages: [{ role: 'user', content: 'Hello, OpenRouter!' }],
+                            max_tokens: 100
+                        })
+                    });
+
+                    if (response.ok) {
+                        statusElement.textContent = '验证成功！';
+                        statusElement.className = 'validation-status success';
+                        this.addVerifiedModel('openrouter', modelName, apiKey);
+                    } else {
+                        const errorData = await response.json();
+                        statusElement.textContent = `验证失败: ${errorData.error?.message || response.statusText}`;
+                        statusElement.className = 'validation-status error';
+                    }
+                } catch (error) {
+                    statusElement.textContent = `验证失败: ${error.message}`;
+                    statusElement.className = 'validation-status error';
+                } finally {
+                    testBtn.disabled = false;
+                    testBtn.innerHTML = '<i class="fa-solid fa-vial"></i> 验证 API';
+                }
+            }
+
             // 添加已验证模型
             addVerifiedModel(provider, modelName, apiKey) {
                 const verifiedModels = JSON.parse(localStorage.getItem('verified_models') || '[]');
@@ -986,8 +1326,26 @@
                 }
 
                 listElement.innerHTML = verifiedModels.map(model => {
-                    const providerIcon = model.provider === 'deepseek' ? 'fa-solid fa-brain' : 'fa-solid fa-gemini';
-                    const providerClass = model.provider === 'deepseek' ? 'deepseek' : 'gemini';
+                    let providerIcon, providerClass;
+                    if (model.provider === 'deepseek') {
+                        providerIcon = 'fa-solid fa-brain';
+                        providerClass = 'deepseek';
+                    } else if (model.provider === 'gemini') {
+                        providerIcon = 'fa-solid fa-gemini';
+                        providerClass = 'gemini';
+                    } else if (model.provider === 'kimi') {
+                        providerIcon = 'fa-solid fa-robot';
+                        providerClass = 'kimi';
+                    } else if (model.provider === 'qwen') {
+                        providerIcon = 'fa-solid fa-fire';
+                        providerClass = 'qwen';
+                    } else if (model.provider === 'openrouter') {
+                        providerIcon = 'fa-solid fa-link';
+                        providerClass = 'openrouter';
+                    } else {
+                        providerIcon = 'fa-solid fa-cube';
+                        providerClass = 'default';
+                    }
                     return `
                         <div class="model-tag ${providerClass}">
                             <i class="${providerIcon}"></i>
@@ -1107,6 +1465,96 @@
                         }
                     } else {
                         results.push({ type: 'warning', message: 'Google API: API密钥或模型名称未配置' });
+                    }
+
+                    // 测试Kimi API
+                    const kimiApiKey = localStorage.getItem('kimi_api_key');
+                    const kimiModelName = document.getElementById('kimi-model-name').value.trim();
+                    if (kimiApiKey && kimiModelName) {
+                        try {
+                            const response = await fetch('https://api.moonshot.cn/v1/chat/completions', {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${kimiApiKey}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    model: kimiModelName,
+                                    messages: [{ role: 'user', content: 'Hello, Kimi!' }],
+                                    temperature: 0.6,
+                                    max_tokens: 100
+                                })
+                            });
+                            if (response.ok) {
+                                results.push({ type: 'success', message: `Kimi API: 验证成功 (${kimiModelName})` });
+                            } else {
+                                results.push({ type: 'error', message: `Kimi API: 验证失败 (${kimiModelName}, ${response.status} ${response.statusText})` });
+                            }
+                        } catch (e) {
+                            results.push({ type: 'error', message: `Kimi API: 连接失败 (${kimiModelName})` });
+                        }
+                    } else {
+                        results.push({ type: 'warning', message: 'Kimi API: API密钥或模型名称未配置' });
+                    }
+
+                    // 测试Qwen API
+                    const qwenApiKey = localStorage.getItem('qwen_api_key');
+                    const qwenModelName = document.getElementById('qwen-model-name').value.trim();
+                    if (qwenApiKey && qwenModelName) {
+                        try {
+                            const response = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${qwenApiKey}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    model: qwenModelName,
+                                    messages: [{ role: 'user', content: 'Hello, Qwen!' }],
+                                    temperature: 0.7,
+                                    max_tokens: 100
+                                })
+                            });
+                            if (response.ok) {
+                                results.push({ type: 'success', message: `Qwen API: 验证成功 (${qwenModelName})` });
+                            } else {
+                                results.push({ type: 'error', message: `Qwen API: 验证失败 (${qwenModelName}, ${response.status} ${response.statusText})` });
+                            }
+                        } catch (e) {
+                            results.push({ type: 'error', message: `Qwen API: 连接失败 (${qwenModelName})` });
+                        }
+                    } else {
+                        results.push({ type: 'warning', message: 'Qwen API: API密钥或模型名称未配置' });
+                    }
+
+                    // 测试OpenRouter API
+                    const openRouterApiKey = localStorage.getItem('openrouter_api_key');
+                    const openRouterModelName = document.getElementById('openrouter-model-name').value.trim();
+                    if (openRouterApiKey && openRouterModelName) {
+                        try {
+                            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${openRouterApiKey}`
+                                },
+                                body: JSON.stringify({
+                                    model: openRouterModelName,
+                                    messages: [{ role: 'user', content: 'Hello, OpenRouter!' }],
+                                    max_tokens: 100
+                                })
+                            });
+                            if (response.ok) {
+                                results.push({ type: 'success', message: `OpenRouter API: 验证成功 (${openRouterModelName})` });
+                            } else {
+                                const errorData = await response.json();
+                                results.push({ type: 'error', message: `OpenRouter API: 验证失败 (${openRouterModelName}, ${errorData.error?.message || response.statusText})` });
+                            }
+                        } catch (e) {
+                            results.push({ type: 'error', message: `OpenRouter API: 连接失败 (${openRouterModelName})` });
+                        }
+                    } else {
+                        results.push({ type: 'warning', message: 'OpenRouter API: API密钥或模型名称未配置' });
                     }
 
                     this.showTestResults(results);

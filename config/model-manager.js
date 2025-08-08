@@ -34,7 +34,10 @@ class ModelManager {
             google: localStorage.getItem('google_api_key') || '',
             coze: localStorage.getItem('coze_api_key') || '',
             'coze-local': localStorage.getItem('coze_local_api_key') || '', // Coze 本地部署可选择配置 API 密钥
-            deepseek: localStorage.getItem('deepseek_api_key') || ''
+            deepseek: localStorage.getItem('deepseek_api_key') || '',
+            kimi: localStorage.getItem('kimi_api_key') || '', // 新增Kimi API密钥
+            qwen: localStorage.getItem('qwen_api_key') || '', // 新增Qwen API密钥
+            openrouter: localStorage.getItem('openrouter_api_key') || '' // 新增OpenRouter API密钥
         };
     }
 
@@ -131,6 +134,12 @@ class ModelManager {
                 return await this.callDeepSeekAPI(modelId, messages, options);
             case 'coze-local':
                 return await this.callCozeLocalAPI(modelId, messages, options);
+            case 'kimi':
+                return await this.callKimiAPI(modelId, messages, options);
+            case 'qwen':
+                return await this.callQwenAPI(modelId, messages, options);
+            case 'openrouter':
+                return await this.callOpenRouterAPI(modelId, messages, options);
             default:
                 throw new Error(`不支持的提供商: ${provider}`);
         }
@@ -257,6 +266,105 @@ class ModelManager {
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error?.message || 'DeepSeek API调用失败');
+        }
+
+        const data = await response.json();
+        return data.choices[0].message.content;
+    }
+
+    async callKimiAPI(modelId, messages, options) {
+        const apiKey = this.getApiKey('kimi');
+        
+        // Kimi使用Moonshot API，base_url为https://api.moonshot.cn/v1
+        const url = 'https://api.moonshot.cn/v1/chat/completions';
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: modelId || 'kimi-k2-0711-preview', // 默认使用kimi-k2-0711-preview模型
+                messages: messages.map(msg => ({
+                    role: msg.role,
+                    content: msg.content
+                })),
+                temperature: options.temperature || 0.6, // Kimi推荐的默认temperature
+                stream: options.stream || false,
+                max_tokens: options.max_tokens || 4096
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message || 'Kimi API调用失败');
+        }
+
+        const data = await response.json();
+        return data.choices[0].message.content;
+    }
+
+    async callQwenAPI(modelId, messages, options) {
+        const apiKey = this.getApiKey('qwen');
+        
+        // Qwen使用DashScope API，base_url为https://dashscope.aliyuncs.com/compatible-mode/v1
+        const url = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: modelId || 'qwen-plus', // 默认使用qwen-plus模型
+                messages: messages.map(msg => ({
+                    role: msg.role,
+                    content: msg.content
+                })),
+                temperature: options.temperature || 0.7, // Qwen推荐的默认temperature
+                stream: options.stream || false,
+                max_tokens: options.max_tokens || 4096
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message || 'Qwen API调用失败');
+        }
+
+        const data = await response.json();
+        return data.choices[0].message.content;
+    }
+
+    async callOpenRouterAPI(modelId, messages, options) {
+        const apiKey = this.getApiKey('openrouter');
+        
+        // OpenRouter API端点
+        const url = 'https://openrouter.ai/api/v1/chat/completions';
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: modelId || 'openai/gpt-4o', // 默认使用openai/gpt-4o模型
+                messages: messages.map(msg => ({
+                    role: msg.role,
+                    content: msg.content
+                })),
+                temperature: options.temperature || 0.7,
+                stream: options.stream || false,
+                max_tokens: options.max_tokens || 4096
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message || 'OpenRouter API调用失败');
         }
 
         const data = await response.json();

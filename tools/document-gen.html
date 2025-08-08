@@ -589,6 +589,8 @@
                         return localStorage.getItem('qwen_api_key') || '';
                     case 'kimi':
                         return localStorage.getItem('kimi_api_key') || '';
+                    case 'openrouter':
+                        return localStorage.getItem('openrouter_api_key') || '';
                     case 'chatglm':
                         return localStorage.getItem('chatglm_api_key') || '';
                     case 'llama':
@@ -688,10 +690,17 @@
             const apiKey = getApiKey();
             const selectedModel = getCurrentModel();
             
-            // 检查API密钥
-            if (!apiKey) {
-                alert('请先在主框架的"模型设置"中配置您的API密钥。');
-                return;
+            // 检查是否是验证通过的模型
+            const verifiedModels = JSON.parse(localStorage.getItem('verified_models') || '[]');
+            const verifiedModel = verifiedModels.find(m => m.id === selectedModel);
+            
+            if (!verifiedModel) {
+                // 如果不是验证通过的模型，检查API密钥
+                const apiKey = getApiKey();
+                if (!apiKey) {
+                    alert('请先在主框架的"模型设置"中配置您的API密钥。');
+                    return;
+                }
             }
 
             processingView.classList.add('show');
@@ -914,7 +923,6 @@
 
         // --- AI API Functions ---
         async function callAIAPI(messages) {
-            const apiKey = getApiKey();
             const selectedModel = getCurrentModel();
             
             try {
@@ -932,12 +940,23 @@
                             return await callDeepSeekAPI(messages, verifiedModel.modelName, verifiedModel.apiKey);
                         case 'gemini':
                             return await callGoogleAPI(messages, verifiedModel.modelName, verifiedModel.apiKey);
+                        case 'kimi':
+                            return await callKimiAPI(messages, verifiedModel.modelName, verifiedModel.apiKey);
+                        case 'qwen':
+                            return await callQwenAPI(messages, verifiedModel.modelName, verifiedModel.apiKey);
+                        case 'openrouter':
+                            return await callOpenRouterAPI(messages, verifiedModel.modelName, verifiedModel.apiKey);
                         default:
                             throw new Error(`不支持的提供商: ${verifiedModel.provider}`);
                     }
                 }
                 
                 // 如果不是验证通过的模型，尝试从配置文件获取
+                const apiKey = getApiKey();
+                if (!apiKey) {
+                    throw new Error('请先在主框架的"模型设置"中配置您的API密钥。');
+                }
+                
                 const response = await fetch('/config/models.json');
                 const config = await response.json();
                 const modelConfig = config.models[selectedModel];
@@ -1092,7 +1111,8 @@
         }
 
         async function callQwenAPI(messages, model, apiKey) {
-            const url = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation';
+            // Qwen使用DashScope兼容模式API
+            const url = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
             
             const qwenMessages = messages.map(msg => ({
                 role: msg.role === 'user' ? 'user' : 'assistant',
@@ -1106,13 +1126,10 @@
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: model,
-                    input: {
-                        messages: qwenMessages
-                    },
-                    parameters: {
-                        max_tokens: 4000
-                    }
+                    model: model || 'qwen-plus',
+                    messages: qwenMessages,
+                    max_tokens: 4000,
+                    temperature: 0.7
                 })
             });
 
@@ -1122,7 +1139,7 @@
             }
 
             const data = await response.json();
-            return data.output.choices[0].message.content;
+            return data.choices[0].message.content;
         }
 
         async function callKimiAPI(messages, model, apiKey) {
@@ -1215,6 +1232,38 @@
             return data.message.content;
         }
 
+        async function callOpenRouterAPI(messages, model, apiKey) {
+            const url = 'https://openrouter.ai/api/v1/chat/completions';
+            
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            };
+
+            const openRouterMessages = messages.map(msg => ({
+                role: msg.role === 'user' ? 'user' : 'assistant',
+                content: msg.parts[0].text
+            }));
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({
+                    model: model,
+                    messages: openRouterMessages,
+                    max_tokens: 4000
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || 'OpenRouter API请求失败');
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content;
+        }
+
         // --- AI Optimization Functions ---
         let currentOptimizingField = null;
 
@@ -1227,13 +1276,19 @@
                 return;
             }
 
-            const apiKey = getApiKey();
             const selectedModel = getCurrentModel();
             
-            // 检查API密钥
-            if (!apiKey) {
-                alert('请先在主框架的"模型设置"中配置您的API密钥。');
-                return;
+            // 检查是否是验证通过的模型
+            const verifiedModels = JSON.parse(localStorage.getItem('verified_models') || '[]');
+            const verifiedModel = verifiedModels.find(m => m.id === selectedModel);
+            
+            if (!verifiedModel) {
+                // 如果不是验证通过的模型，检查API密钥
+                const apiKey = getApiKey();
+                if (!apiKey) {
+                    alert('请先在主框架的"模型设置"中配置您的API密钥。');
+                    return;
+                }
             }
 
             const fieldName = document.querySelector(`label[for=${fieldId}]`).textContent.replace('*', '').trim();
@@ -1245,7 +1300,6 @@
             optimizeBtn.disabled = true;
 
             try {
-                const selectedModel = getCurrentModel();
                 const prompt = `
                     请对以下内容进行优化，使其更加专业、清晰和完整。优化要求：
                     1. 保持原意的同时提升表达的专业性
@@ -1262,7 +1316,6 @@
 
                 console.log('Sending optimization request to AI API...');
                 const optimizedText = await callAIAPI([{ role: 'user', parts: [{ text: prompt }] }]);
-
 
                 
                 // Show optimization modal
