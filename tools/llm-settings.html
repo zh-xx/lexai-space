@@ -439,6 +439,10 @@
             background: #6366f1;
         }
 
+        .model-tag.ollama {
+            background: #2d3748;
+        }
+
         /* 删除按钮样式 */
         .model-tag .delete-btn {
             background: rgba(255, 255, 255, 0.2);
@@ -648,6 +652,38 @@
                         <span class="validation-status" id="openrouter-validation-status"></span>
                     </div>
                 </div>
+
+                <!-- Ollama（本地） -->
+                <div class="config-card">
+                    <div class="config-header">
+                        <div class="config-info">
+                            <h4>Ollama（本地）</h4>
+                            <p>在本机或局域网运行的开源推理服务。默认地址 http://localhost:11434</p>
+                        </div>
+                        <div class="status-indicator" id="ollama-status"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">服务地址</label>
+                        <input type="text" class="form-input" id="ollama-url" placeholder="例如：http://localhost:11434">
+                        <div class="help-text">
+                            <a href="https://ollama.com/" target="_blank">安装与使用 Ollama</a>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">模型名称</label>
+                        <input type="text" class="form-input" id="ollama-model-name" placeholder="例如：llama3.1, qwen2, phi3, mistral 等">
+                        <div class="help-text">输入已在 Ollama 本地拉取的模型名称</div>
+                    </div>
+
+                    <div class="form-group">
+                        <button class="btn btn-secondary" id="test-ollama-btn">
+                            <i class="fa-solid fa-vial"></i> 验证 服务
+                        </button>
+                        <span class="validation-status" id="ollama-validation-status"></span>
+                    </div>
+                </div>
             </div>
 
             <!-- 工具模型配置 -->
@@ -767,6 +803,10 @@
                     document.getElementById('kimi-model-name').value = localStorage.getItem('kimi_model_name') || '';
                     document.getElementById('qwen-model-name').value = localStorage.getItem('qwen_model_name') || '';
                     document.getElementById('openrouter-model-name').value = localStorage.getItem('openrouter_model_name') || '';
+
+                    // 加载本地服务配置（Ollama）
+                    document.getElementById('ollama-url').value = localStorage.getItem('ollama_url') || 'http://localhost:11434';
+                    document.getElementById('ollama-model-name').value = localStorage.getItem('ollama_model_name') || '';
                     
                     // 加载工具模型配置
                     document.getElementById('ai-chat-model').value = localStorage.getItem('ai-chat_model') || '';
@@ -837,6 +877,13 @@
                         console.log('OpenRouter验证按钮事件绑定成功');
                     }
 
+                    // Ollama验证按钮
+                    const testOllamaBtn = document.getElementById('test-ollama-btn');
+                    if (testOllamaBtn) {
+                        testOllamaBtn.addEventListener('click', () => this.testOllamaApi());
+                        console.log('Ollama验证按钮事件绑定成功');
+                    }
+
                     // 弹窗事件
                     const modalClose = document.getElementById('modal-close');
                     const modalOk = document.getElementById('modal-ok');
@@ -887,12 +934,16 @@
                     const kimiModelName = document.getElementById('kimi-model-name').value.trim();
                     const qwenModelName = document.getElementById('qwen-model-name').value.trim();
                     const openrouterModelName = document.getElementById('openrouter-model-name').value.trim();
+                    const ollamaUrl = document.getElementById('ollama-url').value.trim();
+                    const ollamaModelName = document.getElementById('ollama-model-name').value.trim();
 
                     if (deepseekModelName) localStorage.setItem('deepseek_model_name', deepseekModelName);
                     if (geminiModelName) localStorage.setItem('gemini_model_name', geminiModelName);
                     if (kimiModelName) localStorage.setItem('kimi_model_name', kimiModelName);
                     if (qwenModelName) localStorage.setItem('qwen_model_name', qwenModelName);
                     if (openrouterModelName) localStorage.setItem('openrouter_model_name', openrouterModelName);
+                    if (ollamaUrl) localStorage.setItem('ollama_url', ollamaUrl);
+                    if (ollamaModelName) localStorage.setItem('ollama_model_name', ollamaModelName);
                     
                     // 保存工具模型配置
                     const aiChatModel = document.getElementById('ai-chat-model').value;
@@ -994,6 +1045,12 @@
                     // 更新工具模型状态
                     const aiChatModel = localStorage.getItem('ai-chat_model') || '';
                     const documentGenModel = localStorage.getItem('document-gen_model') || '';
+                    // Ollama状态（基于URL是否存在）
+                    const ollamaStatus = document.getElementById('ollama-status');
+                    if (ollamaStatus) {
+                        const url = localStorage.getItem('ollama_url');
+                        ollamaStatus.className = `status-indicator ${url ? 'connected' : ''}`;
+                    }
                     
                     const aiChatStatus = document.getElementById('ai-chat-model-status');
                     const documentGenStatus = document.getElementById('document-gen-model-status');
@@ -1342,6 +1399,9 @@
                     } else if (model.provider === 'openrouter') {
                         providerIcon = 'fa-solid fa-link';
                         providerClass = 'openrouter';
+                    } else if (model.provider === 'ollama') {
+                        providerIcon = 'fa-solid fa-server';
+                        providerClass = 'ollama';
                     } else {
                         providerIcon = 'fa-solid fa-cube';
                         providerClass = 'default';
@@ -1557,12 +1617,88 @@
                         results.push({ type: 'warning', message: 'OpenRouter API: API密钥或模型名称未配置' });
                     }
 
+                    // 测试Ollama（本地）
+                    const ollamaUrl = document.getElementById('ollama-url').value.trim() || 'http://localhost:11434';
+                    const ollamaModelName = document.getElementById('ollama-model-name').value.trim();
+                    if (ollamaUrl && ollamaModelName) {
+                        try {
+                            const response = await fetch(`${ollamaUrl}/api/chat`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    model: ollamaModelName,
+                                    messages: [{ role: 'user', content: 'Hello, Ollama!' }],
+                                    stream: false
+                                })
+                            });
+                            if (response.ok) {
+                                results.push({ type: 'success', message: `Ollama: 验证成功 (${ollamaModelName})` });
+                            } else {
+                                results.push({ type: 'error', message: `Ollama: 验证失败 (${ollamaModelName}, ${response.status} ${response.statusText})` });
+                            }
+                        } catch (e) {
+                            results.push({ type: 'error', message: `Ollama: 连接失败 (${ollamaModelName})` });
+                        }
+                    } else {
+                        results.push({ type: 'warning', message: 'Ollama: 服务地址或模型名称未配置' });
+                    }
+
                     this.showTestResults(results);
                 } catch (error) {
                     this.showModal('错误', `API测试失败: ${error.message}`, 'error');
                 } finally {
                     testBtn.textContent = originalText;
                     testBtn.disabled = false;
+                }
+            }
+
+            // 测试Ollama（本地）
+            async testOllamaApi() {
+                const url = (document.getElementById('ollama-url').value.trim() || 'http://localhost:11434').replace(/\/$/, '');
+                const modelName = document.getElementById('ollama-model-name').value.trim();
+                const statusElement = document.getElementById('ollama-validation-status');
+                const testBtn = document.getElementById('test-ollama-btn');
+
+                if (!url || !modelName) {
+                    statusElement.textContent = '请先输入服务地址和模型名称';
+                    statusElement.className = 'validation-status warning';
+                    return;
+                }
+
+                testBtn.disabled = true;
+                testBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 验证中...';
+                statusElement.textContent = '正在验证...';
+                statusElement.className = 'validation-status warning';
+
+                try {
+                    const response = await fetch(`${url}/api/chat`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            model: modelName,
+                            messages: [{ role: 'user', content: 'Hello, Ollama!' }],
+                            stream: false
+                        })
+                    });
+
+                    if (response.ok) {
+                        statusElement.textContent = '验证成功！';
+                        statusElement.className = 'validation-status success';
+                        // 保存配置并加入已验证模型
+                        localStorage.setItem('ollama_url', url);
+                        localStorage.setItem('ollama_model_name', modelName);
+                        this.addVerifiedModel('ollama', modelName, '');
+                        this.updateStatus();
+                    } else {
+                        statusElement.textContent = `验证失败: ${response.status} ${response.statusText}`;
+                        statusElement.className = 'validation-status error';
+                    }
+                } catch (error) {
+                    statusElement.textContent = `验证失败: ${error.message}`;
+                    statusElement.className = 'validation-status error';
+                } finally {
+                    testBtn.disabled = false;
+                    testBtn.innerHTML = '<i class="fa-solid fa-vial"></i> 验证 服务';
                 }
             }
 

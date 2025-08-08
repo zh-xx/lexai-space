@@ -121,7 +121,8 @@ class ModelManager {
 
         const provider = modelConfig.provider;
         const apiKey = this.getApiKey(provider);
-        if (!apiKey) {
+        const providersDoNotRequireApiKey = ['ollama', 'coze-local'];
+        if (!providersDoNotRequireApiKey.includes(provider) && !apiKey) {
             throw new Error(`${provider} API密钥未配置`);
         }
 
@@ -140,6 +141,8 @@ class ModelManager {
                 return await this.callQwenAPI(modelId, messages, options);
             case 'openrouter':
                 return await this.callOpenRouterAPI(modelId, messages, options);
+            case 'ollama':
+                return await this.callOllamaAPI(modelId, messages, options);
             default:
                 throw new Error(`不支持的提供商: ${provider}`);
         }
@@ -371,6 +374,42 @@ class ModelManager {
         return data.choices[0].message.content;
     }
 
+    async callOllamaAPI(modelId, messages, options) {
+        const ollamaUrl = localStorage.getItem('ollama_url') || 'http://localhost:11434';
+        const url = `${ollamaUrl}/api/chat`;
+
+        const ollamaMessages = messages.map(msg => ({
+            role: msg.role === 'user' ? 'user' : 'assistant',
+            content: msg.content
+        }));
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: modelId,
+                messages: ollamaMessages,
+                stream: false
+            })
+        });
+
+        if (!response.ok) {
+            let message = 'Ollama API调用失败';
+            try {
+                const errorData = await response.json();
+                message = errorData.error?.message || message;
+            } catch (_) {
+                // ignore json parse error
+            }
+            throw new Error(message);
+        }
+
+        const data = await response.json();
+        // /api/chat 返回 { message: { role, content } }
+        return data.message?.content || '';
+    }
 
 
 

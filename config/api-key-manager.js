@@ -32,6 +32,9 @@ class ApiKeyManager {
         this.localConfigs = {
             'coze-local': {
                 url: localStorage.getItem('coze_local_base_url') || 'http://localhost:8080'
+            },
+            'ollama': {
+                url: localStorage.getItem('ollama_url') || 'http://localhost:11434'
             }
         };
     }
@@ -79,8 +82,8 @@ class ApiKeyManager {
 
     // 检查API密钥是否已配置
     isApiKeyConfigured(provider) {
-        if (provider === 'coze-local') {
-            // 本地coze需要URL配置，API密钥是可选的
+        if (provider === 'coze-local' || provider === 'ollama') {
+            // 本地服务需要URL配置，API密钥是可选的或不需要
             return !!this.getLocalConfig(provider)?.url;
         }
         return !!this.getApiKey(provider);
@@ -90,12 +93,12 @@ class ApiKeyManager {
     getApiKeyStatus() {
         const status = {};
         
-        // 检查需要API密钥的提供商
-        ['google', 'coze', 'deepseek', 'coze-local', 'kimi', 'qwen', 'openrouter'].forEach(provider => {
+        // 检查提供商配置（包含本地提供商）
+        ['google', 'coze', 'deepseek', 'coze-local', 'kimi', 'qwen', 'openrouter', 'ollama'].forEach(provider => {
             status[provider] = {
                 configured: this.isApiKeyConfigured(provider),
                 hasKey: !!this.getApiKey(provider),
-                hasUrl: provider === 'coze-local' ? !!this.getLocalConfig(provider)?.url : null
+                hasUrl: (provider === 'coze-local' || provider === 'ollama') ? !!this.getLocalConfig(provider)?.url : null
             };
         });
 

@@ -946,6 +946,8 @@
                             return await callQwenAPI(messages, verifiedModel.modelName, verifiedModel.apiKey);
                         case 'openrouter':
                             return await callOpenRouterAPI(messages, verifiedModel.modelName, verifiedModel.apiKey);
+                        case 'ollama':
+                            return await callOllamaAPI(messages, verifiedModel.modelName, verifiedModel.apiKey);
                         default:
                             throw new Error(`不支持的提供商: ${verifiedModel.provider}`);
                     }
