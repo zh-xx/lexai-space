@@ -433,7 +433,7 @@
             <header class="chat-header">
                 <div>
                     <h2 id="chat-title">新建对话</h2>
-                    <div class="model-indicator" id="model-indicator">使用模型: Gemini 2.5 Pro | 点击标题可编辑</div>
+                    <div class="model-indicator" id="model-indicator">使用模型: 未配置模型 | 点击标题可编辑</div>
                 </div>
 
             </header>
@@ -720,17 +720,25 @@
         
         function updateModelIndicator() {
             const selectedModel = getCurrentModel();
+
+            // 判断是否在设置中显式选择并保存了模型
+            const modelStorageKey = isUsingUnifiedSettings() ? 'ai-chat_model' : 'selectedModel';
+            const hasExplicitSelection = !!localStorage.getItem(modelStorageKey);
+
+            if (!hasExplicitSelection) {
+                modelIndicator.textContent = '使用模型: 未配置模型 | 点击标题可编辑';
+                return;
+            }
+
             let modelDisplayName = selectedModel;
-            
+
             // 检查是否是验证通过的模型
             const verifiedModels = JSON.parse(localStorage.getItem('verified_models') || '[]');
             const verifiedModel = verifiedModels.find(m => m.id === selectedModel);
-            
+
             if (verifiedModel) {
-                // 使用验证通过的模型名称
                 modelDisplayName = verifiedModel.modelName;
             } else {
-                // 使用预定义的模型名称映射
                 const modelNames = {
                     'gemini-1.5-pro': 'Gemini 1.5 Pro',
                     'gemini-2.0-pro': 'Gemini 2.0 Pro',

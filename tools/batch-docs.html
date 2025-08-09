@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>批量生成法律文书</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #5A67D8;
+      --primary-hover: #4C51BF;
+      --secondary-color: #F7FAFC;
+      --border-color: #E2E8F0;
+      --text-color: #2D3748;
+      --text-secondary: #718096;
+      --success-color: #48BB78;
+      --error-color: #F56565;
+      --font-sans: 'Inter', 'Noto Sans SC', sans-serif;
+      --surface: #FFFFFF;
+      --muted-surface: #F9FAFB;
+      --shadow-sm: 0 2px 6px rgba(17, 24, 39, 0.06);
+      --shadow-md: 0 6px 18px rgba(17, 24, 39, 0.08);
+    }
+    body { font-family: var(--font-sans); background: linear-gradient(180deg, #F6F8FC 0%, #FFFFFF 100%); margin: 0; color: var(--text-color); }
+    .page-heading { max-width: 1180px; margin: 20px auto 0; padding: 0 40px; }
+    .page-heading h1 { margin: 0 0 0; font-size: 1.3em; font-weight: 700; padding-left: 0; display: flex; align-items: center; gap: 6px; }
+    .page-heading h1 .logo { color: var(--primary-color); font-size: 1em; }
+    .page-heading .subtitle { color: var(--text-secondary); }
+    .app-root { zoom: 0.9; }
+    .container { max-width: 1180px; margin: 6px auto 40px; padding: 24px 32px; }
+    .card { background: var(--surface); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px; box-shadow: var(--shadow-sm); }
+    .title { font-size: 1.2em; font-weight: 600; margin-bottom: 10px; }
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .page-title { display: flex; align-items: center; gap: 10px; }
+    .page-title i { color: var(--primary-color); font-size: 1.15em; }
+    .page-subtitle { color: var(--text-secondary); font-size: 0.95em; margin-top: 2px; }
+    .row { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
+    .form-group { margin-bottom: 12px; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; }
+    input[type="text"], input[type="file"], select { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 10px; font-family: inherit; background: #fff; }
+    .btn { padding: 10px 14px; border: none; border-radius: 10px; background: var(--primary-color); color: #fff; cursor: pointer; font-weight: 600; box-shadow: var(--shadow-sm); }
+    .btn:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+    .btn-secondary { background: #fff; color: var(--primary-color); border: 1px solid #CBD5E0; }
+    .btn-secondary:hover { background: #F7FAFF; }
+    .actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 12px; }
+    .actions-left { justify-content: flex-start; margin-bottom: 12px; }
+    .hint { color: var(--text-secondary); font-size: 0.9em; }
+    .error { color: var(--error-color); }
+    .success { color: var(--success-color); }
+    .hidden { display: none; }
+    .uploader { border: 1.5px dashed var(--border-color); padding: 16px; border-radius: 12px; background: var(--muted-surface); transition: all .2s ease; }
+    .uploader:hover { border-color: #C3DAFE; background: #F7FAFF; }
+    .status { margin-top: 12px; font-size: 0.95em; color: var(--text-secondary); }
+
+    .step-title { display: flex; align-items: center; gap: 8px; font-weight: 600; margin: 8px 0; }
+    .step-num { background: var(--primary-color); color: #fff; width: 22px; height: 22px; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85em; }
+    .file-meta { font-size: 0.85em; color: var(--text-secondary); margin-top: 6px; }
+    .info-card { background: #fafbfc; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; }
+    .info-card h3 { margin: 0 0 8px; font-size: 1.05em; }
+    .info-card h4 { margin: 12px 0 6px; font-size: 0.98em; }
+    .info-card ul { margin: 6px 0 0 18px; padding: 0; }
+    .output-card .title { display: flex; align-items: center; justify-content: space-between; }
+    .muted { color: var(--text-secondary); font-size: 0.9em; }
+
+    /* 进度与步骤状态 */
+    .progress-bar { height: 8px; background: #EDF2F7; border-radius: 999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,.04); }
+    .progress-bar-inner { height: 100%; width: 0%; background: linear-gradient(90deg, #5A67D8, #805AD5); transition: width .3s ease; }
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0 0; }
+    .step { display: flex; align-items: center; gap: 6px; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 10px; background: #fff; font-size: 0.9em; color: var(--text-secondary); box-shadow: var(--shadow-sm); }
+    .step i { color: #A0AEC0; }
+    .step.active { border-color: #C3DAFE; background: #F7FAFF; color: #2D3748; }
+    .step.active i { color: var(--primary-color); }
+    .step.done { border-color: #C6F6D5; background: #F0FFF4; color: #22543D; }
+    .step i { font-size: 0.95em; }
+
+    /* 拖拽上传 */
+    .dropzone { border: 2px dashed var(--border-color); padding: 16px; border-radius: 12px; background: #F9FAFB; text-align: center; color: var(--text-secondary); cursor: pointer; transition: all .2s ease; }
+    .dropzone:hover { border-color: var(--primary-color); background: rgba(90, 103, 216, 0.05); color: var(--primary-color); }
+    .dropzone.dragover { border-color: var(--primary-color); background: rgba(90, 103, 216, 0.1); color: var(--primary-color); }
+    .dropzone small { display: block; margin-top: 4px; }
+
+    .banner { padding: 10px 12px; border-radius: 10px; margin: 8px 0; border: 1px solid #E2E8F0; box-shadow: var(--shadow-sm); }
+    .banner.error { background: #FED7D7; border-color: #FEB2B2; color: #742A2A; }
+    .banner.success { background: #F0FFF4; border-color: #9AE6B4; color: #22543D; }
+
+    /* 结果列表 UI */
+    .links-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0; }
+    .links-count { color: var(--text-secondary); font-size: 0.9em; }
+    .input { padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 10px; background: #fff; font-family: inherit; }
+    .link-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    @media (min-width: 880px) { .link-grid { grid-template-columns: 1fr; } }
+    .link-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 12px; background: #fff; box-shadow: var(--shadow-sm); }
+    .link-index { width: 26px; height: 26px; border-radius: 13px; background: #EEF2FF; color: #4C51BF; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85em; }
+    .link-favicon { width: 20px; height: 20px; border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #EDF2F7; color: var(--primary-color); }
+    .link-favicon img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .link-text { flex: 1; min-width: 0; }
+    .link-host { font-weight: 600; color: #2D3748; line-height: 1.1; }
+    .link-path { color: var(--text-secondary); font-size: 0.9em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .link-actions { display: flex; gap: 8px; }
+
+    /* Markdown 预览样式（轻量版） */
+    .markdown-body { font-size: 14px; line-height: 1.6; color: var(--text-color); }
+    .markdown-body h1,.markdown-body h2,.markdown-body h3 { margin: .6em 0 .4em; }
+    .markdown-body p { margin: .4em 0; }
+    .markdown-body code { background: #F7FAFC; padding: .15em .35em; border-radius: 4px; border: 1px solid #E2E8F0; }
+    .markdown-body pre { background: #0B1021; color: #E5E7EB; padding: 10px; border-radius: 8px; overflow: auto; }
+    .markdown-body table { border-collapse: collapse; width: 100%; margin: 6px 0; }
+    .markdown-body th, .markdown-body td { border: 1px solid var(--border-color); padding: 8px 10px; text-align: left; }
+    .markdown-body thead th { background: #F7FAFF; }
+  </style>
+</head>
+<body>
+  <div class="page-heading">
+    <h1><i class="fa-solid fa-file-signature logo"></i> 批量生成法律文书</h1>
+  </div>
+  <div class="app-root">
+  <div class="container">
+    <div class="card">
+
+      <div class="row">
+        <div>
+          <!-- 模型选择在此工具中不展示，完全依赖统一设置的工作流选择 -->
+
+          <!-- 工具不承载或展示任何连接设置，全部在“工作流设置”页统一管理。 -->
+
+          <div class="uploader">
+            <div class="form-group">
+              <div class="step-title"><span class="step-num">1</span>上传样本合同</div>
+              <div id="doc-drop" class="dropzone">
+                <div><i class="fa-regular fa-file-word"></i> 拖拽到此或点击选择</div>
+                <small>支持 .docx</small>
+              </div>
+              <input type="file" id="doc-file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display:none;">
+              <div class="file-meta" id="doc-meta">未选择文件</div>
+              <div class="info-card" style="margin-top:10px;">
+                <h4 style="margin:0 0 6px;">样本文件内容要求</h4>
+                <p style="margin:0 0 6px;">需要批量输入的部分，请使用以下格式标注： <strong>￥文本￥</strong></p>
+                <div class="actions" style="justify-content:flex-start; margin-top:6px;">
+                  <button type="button" class="btn btn-secondary" id="btn-doc-example" style="padding:6px 10px; font-size:0.85em;">
+                    <i class="fa-regular fa-image"></i>&nbsp;查看示例
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="step-title"><span class="step-num">2</span>上传批量数据</div>
+              <div id="excel-drop" class="dropzone">
+                <div><i class="fa-regular fa-file-excel"></i> 拖拽到此或点击选择</div>
+                <small>支持 .xls / .xlsx</small>
+              </div>
+              <input type="file" id="excel-file" accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display:none;">
+              <div class="file-meta" id="excel-meta">未选择文件</div>
+              <div class="info-card" style="margin-top:10px;">
+                <h4 style="margin:0 0 6px;">批量填写数据内容要求</h4>
+                <ul style="margin:0 0 6px 18px;">
+                  <li>列标题为“￥文本￥”中的“文本”。</li>
+                  <li>无需序号列。</li>
+                </ul>
+                <div class="actions" style="justify-content:flex-start; margin-top:6px;">
+                  <button type="button" class="btn btn-secondary" id="btn-excel-example" style="padding:6px 10px; font-size:0.85em;">
+                    <i class="fa-regular fa-image"></i>&nbsp;查看示例
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="actions actions-left">
+            <button class="btn" id="run-btn"><i class="fa-solid fa-play"></i>&nbsp;开始生成</button>
+          </div>
+
+          <div class="steps" style="display:none; margin-bottom:8px;">
+            <div class="step" id="step-1"><i class="fa-regular fa-file"></i>文件上传</div>
+            <div class="step" id="step-2"><i class="fa-solid fa-cloud-arrow-up"></i>发送任务</div>
+            <div class="step" id="step-3"><i class="fa-solid fa-robot"></i>生成中</div>
+            <div class="step" id="step-4"><i class="fa-regular fa-circle-check"></i>完成</div>
+          </div>
+          <div class="status" id="status"></div>
+          <div class="banner error hidden" id="error"></div>
+        </div>
+
+        <div>
+            <div class="card output-card">
+            <div class="title">生成结果</div>
+            <div class="actions" id="md-tools" style="display:none; gap:8px; margin:6px 0 8px;">
+              <button class="btn btn-secondary" id="btn-copy-md" style="padding:6px 10px; font-size:0.85em;"><i class="fa-regular fa-copy"></i>&nbsp;复制 Markdown</button>
+              <a class="btn" id="btn-download-md" style="padding:6px 10px; font-size:0.85em;" download><i class="fa-solid fa-download"></i>&nbsp;下载 .md</a>
+            </div>
+            <div id="markdown-preview" class="markdown-body" style="border:1px solid var(--border-color); border-radius:12px; padding:12px; background:#fff; box-shadow: var(--shadow-sm);"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <script src="../config/model-manager.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  
+  <!-- 示例预览弹窗 -->
+  <div id="example-modal" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; z-index:1000;">
+    <div style="background:#fff; border-radius:12px; width:min(920px, 92vw); max-height:86vh; overflow:auto; box-shadow: var(--shadow-md);">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-bottom:1px solid var(--border-color); position:sticky; top:0; background:#fff; border-top-left-radius:12px; border-top-right-radius:12px;">
+        <div style="font-weight:700;">示例预览</div>
+        <button id="btn-example-close" class="btn btn-secondary" style="padding:6px 10px; font-size:0.85em;">关闭</button>
+      </div>
+      <div id="example-content" style="padding:12px;"></div>
+    </div>
+  </div>
+  <script>
+    const FILE_VAR_DOC = 'input_doc';
+    const FILE_VAR_EXCEL = 'input_excel';
+    const OUTPUT_VAR = 'output';
+
+    const statusEl = document.getElementById('status');
+    const errorEl = document.getElementById('error');
+    // 不再展示模型选择
+    const runBtn = document.getElementById('run-btn');
+    // 链接展示相关（已移除链接列表 UI，只保留变量以兼容旧逻辑）
+    const outputLinks = document.getElementById('output-links');
+    const linksToolbar = document.getElementById('links-toolbar');
+    const linksCount = document.getElementById('links-count');
+    const searchInput = document.getElementById('search-input');
+    const openAllBtn = document.getElementById('open-all-btn');
+    const copyAllBtn = document.getElementById('copy-all-btn');
+    const mdPreview = document.getElementById('markdown-preview');
+    const mdTools = document.getElementById('md-tools');
+    const btnCopyMd = document.getElementById('btn-copy-md');
+    const btnDownloadMd = document.getElementById('btn-download-md');
+    const docInput = document.getElementById('doc-file');
+    const excelInput = document.getElementById('excel-file');
+    const docMeta = document.getElementById('doc-meta');
+    const excelMeta = document.getElementById('excel-meta');
+    const steps = [
+      document.getElementById('step-1'),
+      document.getElementById('step-2'),
+      document.getElementById('step-3'),
+      document.getElementById('step-4')
+    ];
+    const docDrop = document.getElementById('doc-drop');
+    const excelDrop = document.getElementById('excel-drop');
+    const btnDocExample = document.getElementById('btn-doc-example');
+    const btnExcelExample = document.getElementById('btn-excel-example');
+    const exampleModal = document.getElementById('example-modal');
+    const exampleContent = document.getElementById('example-content');
+    const btnExampleClose = document.getElementById('btn-example-close');
+
+    // 与统一设置兼容：
+    function isUsingUnifiedSettings() { return localStorage.getItem('use_unified_settings') === 'true'; }
+    function getCurrentWorkflow() { return localStorage.getItem('batch_docs_workflow') || 'coze-online'; }
+    function getCurrentModel() {
+      const wf = getCurrentWorkflow();
+      return wf === 'coze-local' ? 'coze-local-workflow' : 'coze-workflow';
+    }
+
+    function getApiKey() {
+      const wf = getCurrentWorkflow();
+      if (wf === 'coze-local') return localStorage.getItem('coze_local_api_key') || '';
+      return localStorage.getItem('coze_online_api_key') || '';
+    }
+
+    function getUploadApiUrl() {
+      const wf = getCurrentWorkflow();
+      return wf === 'coze-local'
+        ? (localStorage.getItem('coze_local_upload_url') || 'http://localhost:8080/api/v1/files/upload')
+        : (localStorage.getItem('coze_online_upload_url') || 'https://api.coze.cn/v1/files/upload');
+    }
+
+    function getStreamRunApiUrl() {
+      const wf = getCurrentWorkflow();
+      return wf === 'coze-local'
+        ? (localStorage.getItem('coze_local_workflow_url') || 'http://localhost:8080/api/v1/workflow/stream_run')
+        : (localStorage.getItem('coze_online_workflow_url') || 'https://api.coze.cn/v1/workflow/stream_run');
+    }
+
+    function getWorkflowId() {
+      const wf = getCurrentWorkflow();
+      return wf === 'coze-local'
+        ? (localStorage.getItem('coze_local_batch_docs_workflow_id') || '')
+        : (localStorage.getItem('coze_online_batch_docs_workflow_id') || '');
+    }
+
+    async function uploadFile(file, apiKey) {
+      const formData = new FormData();
+      formData.append('file', file);
+      const headers = {};
+      if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+      const res = await fetch(getUploadApiUrl(), { method: 'POST', headers, body: formData });
+      if (!res.ok) {
+        let msg = `HTTP ${res.status}`;
+        try { const j = await res.json(); msg = j.msg || res.statusText; } catch (_) {}
+        throw new Error(`文件上传失败: ${msg}`);
+      }
+      const data = await res.json();
+      if (data.code === 0 && data.data && data.data.id) return data.data.id;
+      throw new Error(`文件上传API返回错误: ${data.msg || '未能解析file_id'}`);
+    }
+
+    function extractUrlsFromText(text) {
+      if (!text || typeof text !== 'string') return [];
+      // 提取Markdown链接与纯文本URL：匹配 http(s):// ，排除右括号/右中括号的结尾
+      const regex = /https?:\/\/[^\s)\]]+/gi;
+      const matches = text.match(regex) || [];
+      // 去重
+      return Array.from(new Set(matches));
+    }
+
+    function isProbablyUrl(str) {
+      if (typeof str !== 'string') return false;
+      if (!/^https?:\/\//i.test(str)) return false;
+      try { new URL(str); return true; } catch (_) { return false; }
+    }
+
+    function extractUrlsFromAny(value) {
+      const urls = new Set();
+      const visit = (v) => {
+        if (v == null) return;
+        if (typeof v === 'string') {
+          extractUrlsFromText(v).forEach(u => urls.add(u));
+          if (isProbablyUrl(v)) urls.add(v);
+          return;
+        }
+        if (Array.isArray(v)) { v.forEach(visit); return; }
+        if (typeof v === 'object') {
+          // 常见字段优先
+          const preferred = v.output ?? v.result ?? v.urls ?? v.links ?? v.data?.output ?? v.data?.result ?? v.data?.urls ?? v.data?.links;
+          if (preferred) visit(preferred);
+          // 兜底递归遍历
+          Object.values(v).forEach(visit);
+        }
+      };
+      visit(value);
+      return Array.from(urls);
+    }
+
+    // 旧链接列表逻辑移除，统一改为只渲染 Markdown
+    function renderLinksFromOutput(_) { /* no-op 保持兼容 */ }
+
+    // Markdown 渲染与工具栏
+    let latestMarkdownRaw = '';
+    async function renderMarkdown(md) {
+      latestMarkdownRaw = typeof md === 'string' ? md : String(md ?? '');
+      if (!latestMarkdownRaw.trim()) { mdPreview.innerHTML = ''; mdTools.style.display = 'none'; return; }
+      try {
+        mdPreview.innerHTML = marked.parse(latestMarkdownRaw);
+        mdTools.style.display = 'flex';
+      } catch (_) {
+        mdPreview.textContent = latestMarkdownRaw;
+        mdTools.style.display = 'flex';
+      }
+    }
+
+    function isLikelyMarkdown(str) {
+      if (typeof str !== 'string') return false;
+      const s = str.trim();
+      if (!s) return false;
+      return s.includes('|') && s.includes('---') || /^\s{0,3}#{1,6}\s/.test(s) || /```[a-zA-Z0-9-]*/.test(s) || /\n\n/.test(s);
+    }
+
+    async function tryRenderMarkdownFromAny(value) {
+      // 1) 直接字符串
+      if (typeof value === 'string') {
+        if (isLikelyMarkdown(value)) { await renderMarkdown(value); return; }
+        // 如果是 .md 链接，尝试抓取
+        if (/^https?:\/\/\S+\.md(\?|#|$)/i.test(value)) {
+          try { const r = await fetch(value); const txt = await r.text(); await renderMarkdown(txt); } catch (_) {}
+        }
+        return;
+      }
+      // 2) 常见字段
+      const candidates = [];
+      if (value && typeof value === 'object') {
+        const fields = ['markdown','md','content','text','body','output','result'];
+        for (const k of fields) { if (value[k]) candidates.push(value[k]); }
+        if (value.data && typeof value.data === 'object') {
+          for (const k of fields) { if (value.data[k]) candidates.push(value.data[k]); }
+        }
+        // 兜底遍历
+        Object.values(value).forEach(v => candidates.push(v));
+      }
+      for (const c of candidates) {
+        if (typeof c === 'string') {
+          if (isLikelyMarkdown(c)) { await renderMarkdown(c); return; }
+          if (/^https?:\/\/\S+\.md(\?|#|$)/i.test(c)) {
+            try { const r = await fetch(c); const txt = await r.text(); await renderMarkdown(txt); } catch (_) {}
+            return;
+          }
+        }
+      }
+    }
+
+    if (btnCopyMd) {
+      btnCopyMd.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(latestMarkdownRaw || ''); statusEl.textContent = '已复制 Markdown'; setTimeout(()=> statusEl.textContent='', 1200); } catch (_) {}
+      });
+    }
+
+    if (btnDownloadMd) {
+      btnDownloadMd.addEventListener('click', () => {
+        const blob = new Blob([latestMarkdownRaw || ''], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        btnDownloadMd.href = url;
+        btnDownloadMd.download = `batch_output_${Date.now()}.md`;
+      });
+    }
+
+    // 示例弹窗逻辑：示例图片路径（请将图片放到 ./assets/ 下）
+    // 调整示例图片归属：
+    // - DOC 示例应该展示合同样本（doc-example）
+    // - Excel 示例应该展示批量数据表（excel-example）
+    // 示例图片路径相对于当前 HTML：./.assets/
+    // 修正：DOC 区显示 doc-example，Excel 区显示 excel-example
+    const EXAMPLE_DOC_IMG = './.assets/doc-example.png';
+    const EXAMPLE_XLS_IMG = './.assets/excel-example.png';
+    function openExample(src, alt) {
+      if (!exampleModal) return;
+      exampleContent.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = src; img.alt = alt || '示例';
+      img.style.maxWidth = '100%'; img.style.display = 'block';
+      img.onerror = () => { exampleContent.innerHTML = '<div class="muted">未找到示例图片，请将文件放到 ./.assets/ 目录。</div>'; };
+      exampleContent.appendChild(img);
+      exampleModal.classList.remove('hidden');
+      exampleModal.style.display = 'flex';
+    }
+    function closeExample() {
+      if (exampleModal) {
+        exampleModal.classList.add('hidden');
+        exampleModal.style.display = 'none';
+        exampleContent.innerHTML = '';
+      }
+    }
+    if (btnDocExample) btnDocExample.addEventListener('click', () => openExample(EXAMPLE_DOC_IMG, '样本文件示例'));
+    if (btnExcelExample) btnExcelExample.addEventListener('click', () => openExample(EXAMPLE_XLS_IMG, '批量数据示例'));
+    if (btnExampleClose) btnExampleClose.addEventListener('click', closeExample);
+    if (exampleModal) exampleModal.addEventListener('click', (e) => {
+      if (e.target === exampleModal) closeExample();
+    });
+
+    function setStep(index, state) { /* 简化：保留占位，隐藏步骤 */ }
+
+    function setProgress(percent) { /* 进度条已移除，保持兼容空实现 */ }
+
+    async function runWorkflow() {
+      errorEl.classList.add('hidden'); errorEl.textContent = '';
+      statusEl.textContent = '';
+      // 清空 Markdown 预览
+      const resetMd = () => { latestMarkdownRaw = ''; mdPreview.innerHTML = ''; mdTools.style.display = 'none'; };
+      resetMd();
+
+      const wf = getCurrentWorkflow();
+      const apiKey = getApiKey();
+      const workflowId = getWorkflowId();
+      const docFile = docInput.files[0];
+      const excelFile = excelInput.files[0];
+
+      if (wf === 'coze-online' && !apiKey) { errorEl.textContent = '请先在“工作流设置”中配置 Coze 在线 API Key'; errorEl.classList.remove('hidden'); return; }
+      if (!workflowId) { errorEl.textContent = '请先在“工作流设置”中配置 Workflow ID'; errorEl.classList.remove('hidden'); return; }
+      if (!docFile) { errorEl.textContent = '请上传 DOC 文件'; errorEl.classList.remove('hidden'); return; }
+      if (!excelFile) { errorEl.textContent = '请上传 Excel 文件'; errorEl.classList.remove('hidden'); return; }
+
+      runBtn.disabled = true; statusEl.textContent = '正在上传文件...';
+      setStep(0,'active'); setProgress(10);
+      try {
+        const [docId, excelId] = await Promise.all([
+          uploadFile(docFile, apiKey),
+          uploadFile(excelFile, apiKey)
+        ]);
+        setStep(0,'done'); setStep(1,'active'); setProgress(35);
+        statusEl.textContent = '正在启动工作流...';
+
+        const headers = { 'Content-Type': 'application/json', 'Accept': 'text/event-stream' };
+        if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
+        const parameters = {};
+        parameters[FILE_VAR_DOC] = JSON.stringify({ file_id: docId });
+        parameters[FILE_VAR_EXCEL] = JSON.stringify({ file_id: excelId });
+
+        const body = { workflow_id: workflowId, parameters };
+        const res = await fetch(getStreamRunApiUrl(), { method: 'POST', headers, body: JSON.stringify(body) });
+        if (!res.ok) throw new Error(`启动工作流失败，状态码: ${res.status}`);
+
+        // 读取流式响应
+        setStep(1,'done'); setStep(2,'active'); setProgress(55);
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let accumulatedOutput = '';
+        let hasFinished = false;
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) {
+            if (buffer.length) processBlock(buffer);
+            if (!hasFinished) finishWith(accumulatedOutput);
+            break;
+          }
+          buffer += decoder.decode(value, { stream: true });
+          const blocks = buffer.split('\n\n');
+          buffer = blocks.pop() || '';
+          for (const block of blocks) processBlock(block);
+          setProgress(90);
+        }
+
+        function processBlock(block) {
+          if (!block.trim()) return;
+          let eventType = 'Message'; let dataStr = '';
+          for (const line of block.split('\n')) {
+            if (line.startsWith('event:')) eventType = line.substring(6).trim();
+            else if (line.startsWith('data:')) dataStr += line.substring(5).trim();
+          }
+          if (!dataStr) return;
+          try {
+            const json = JSON.parse(dataStr);
+            // 1) Message 内容（可能是纯文本或字符串化 JSON）
+            if (eventType === 'Message' && (json.content || typeof json === 'string')) {
+              const contentStr = json.content || json;
+              // 先尝试解析为 JSON
+              try {
+                const inner = typeof contentStr === 'string' ? JSON.parse(contentStr) : contentStr;
+                const val = (inner && (inner[OUTPUT_VAR] || inner.output))
+                  || (inner && inner.data && (inner.data[OUTPUT_VAR] || inner.data.output));
+                if (val) {
+                  // 不在 Message 事件中直接渲染，等待 workflow_finished
+                  accumulatedOutput = typeof val === 'string' ? val : JSON.stringify(val);
+                }
+              } catch (_) {
+                // Message 阶段不渲染，避免闪烁/失败
+              }
+              return;
+            }
+            // 2) workflow_finished 信号
+            const et = String(eventType || '').toLowerCase();
+            if (json.type === 'workflow_finished' || json.event === 'workflow_finished' || et === 'workflow_finished') {
+              const container = json.output || (json.data && json.data.output) || json.data || {};
+              const out = container[OUTPUT_VAR] ?? container['result'] ?? container;
+              accumulatedOutput = out ?? accumulatedOutput;
+              finishWith(accumulatedOutput);
+              return;
+            }
+            // 3) 其他结构里直接出现 output 字段
+            const direct = (json[OUTPUT_VAR] || (json.data && json.data[OUTPUT_VAR]) || json.output || (json.data && json.data.output));
+            if (direct) {
+              const val = direct[OUTPUT_VAR] ?? direct['result'] ?? direct;
+              accumulatedOutput = val;
+              tryRenderMarkdownFromAny(val);
+              return;
+            }
+            // 4) Done/End/Completed 事件：作为兜底完成信号
+            if (et === 'done' || et === 'end' || et === 'finished' || et === 'complete' || et === 'completed' || json.event === 'Done') {
+              finishWith(accumulatedOutput);
+              return;
+            }
+          } catch (_) {}
+        }
+
+        function finishWith(possibleMd) {
+          if (hasFinished) return; hasFinished = true;
+          tryRenderMarkdownFromAny(possibleMd);
+          statusEl.textContent = '完成';
+          setStep(3,'done'); setProgress(100);
+        }
+
+      } catch (err) {
+        errorEl.textContent = err.message || String(err);
+        errorEl.classList.remove('hidden');
+        statusEl.textContent = '';
+        setProgress(0); setStep(0,'');
+      } finally {
+        runBtn.disabled = false;
+      }
+    }
+
+    runBtn.addEventListener('click', runWorkflow);
+
+    // 文件变更回显
+    function formatBytes(bytes) {
+      if (!bytes && bytes !== 0) return '';
+      const units = ['B','KB','MB','GB'];
+      let i = 0; let val = bytes;
+      while (val >= 1024 && i < units.length-1) { val /= 1024; i++; }
+      return `${val.toFixed(1)} ${units[i]}`;
+    }
+    function updateFileMeta(input, labelEl) {
+      const f = input.files[0];
+      if (!f) { labelEl.textContent = '未选择文件'; return; }
+      labelEl.textContent = `${f.name}（${formatBytes(f.size)}）`;
+    }
+    docInput.addEventListener('change', () => updateFileMeta(docInput, docMeta));
+    excelInput.addEventListener('change', () => updateFileMeta(excelInput, excelMeta));
+
+    function bindDropzone(zone, input, meta) {
+      const openPicker = () => input.click();
+      const onDragOver = (e) => { e.preventDefault(); zone.classList.add('dragover'); };
+      const onDragLeave = () => zone.classList.remove('dragover');
+      const onDrop = (e) => {
+        e.preventDefault(); zone.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files && files[0]) { input.files = files; updateFileMeta(input, meta); }
+      };
+      zone.addEventListener('click', openPicker);
+      zone.addEventListener('dragover', onDragOver);
+      zone.addEventListener('dragleave', onDragLeave);
+      zone.addEventListener('drop', onDrop);
+    }
+    bindDropzone(docDrop, docInput, docMeta);
+    bindDropzone(excelDrop, excelInput, excelMeta);
+
+    // 初始化（统一设置展示）
+    (function initPage() {
+      // 强制依赖统一设置
+      if (localStorage.getItem('use_unified_settings') !== 'true') {
+        statusEl.textContent = '请先在“工作流设置”中开启统一设置并完成配置';
+      }
+      const model = getCurrentModel();
+    })();
+  </script>
+</body>
+</html>
+
+

@@ -393,7 +393,7 @@
         <div class="right-panel">
             <div class="app-header">
                 <h1><i class="fa-solid fa-file-pen"></i> 合同生成工具</h1>
-                <div class="model-indicator" id="model-indicator">使用模型: 未配置 | 请在LLM设置中配置模型</div>
+                <div class="model-indicator" id="model-indicator">使用模型: 未配置模型 | 请在LLM设置中配置模型</div>
             </div>
             <div class="action-card">
                 <form id="contract-form">
@@ -618,17 +618,25 @@
         function updateModelIndicator() {
             const selectedModel = getCurrentModel();
             const modelIndicator = document.getElementById('model-indicator');
+
+            // 判断是否在设置中显式选择并保存了模型
+            const modelStorageKey = isUsingUnifiedSettings() ? 'document-gen_model' : 'geminiModel';
+            const hasExplicitSelection = !!localStorage.getItem(modelStorageKey);
+
+            if (!hasExplicitSelection) {
+                modelIndicator.textContent = '使用模型: 未配置模型 | 请在LLM设置中配置模型';
+                return;
+            }
+
             let modelDisplayName = selectedModel;
-            
+
             // 检查是否是验证通过的模型
             const verifiedModels = JSON.parse(localStorage.getItem('verified_models') || '[]');
             const verifiedModel = verifiedModels.find(m => m.id === selectedModel);
-            
+
             if (verifiedModel) {
-                // 使用验证通过的模型名称
                 modelDisplayName = verifiedModel.modelName;
             } else {
-                // 使用预定义的模型名称映射
                 const modelNames = {
                     'gemini-1.5-pro': 'Gemini 1.5 Pro',
                     'gemini-2.0-pro': 'Gemini 2.0 Pro',
@@ -638,7 +646,7 @@
                 };
                 modelDisplayName = modelNames[selectedModel] || selectedModel;
             }
-            
+
             modelIndicator.textContent = `使用模型: ${modelDisplayName}`;
         }
 

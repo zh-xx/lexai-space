@@ -579,6 +579,12 @@
                                placeholder="请输入合同解析工作流的 ID">
                         <div class="help-text">在Coze平台创建的合同解析工作流ID</div>
                     </div>
+                    <div class="form-group">
+                        <label class="form-label">批量文书工作流 ID</label>
+                        <input type="text" class="form-input" id="coze-online-batch-docs-workflow-id" 
+                               placeholder="请输入批量文书工作流的 ID">
+                        <div class="help-text">在Coze平台创建的批量文书工作流ID</div>
+                    </div>
                 </div>
 
                 <!-- Coze 本地版配置 -->
@@ -637,6 +643,12 @@
                                placeholder="请输入本地合同解析工作流的 ID">
                         <div class="help-text">本地部署的合同解析工作流ID</div>
                     </div>
+                    <div class="form-group">
+                        <label class="form-label">批量文书工作流 ID</label>
+                        <input type="text" class="form-input" id="coze-local-batch-docs-workflow-id" 
+                               placeholder="请输入本地批量文书工作流的 ID">
+                        <div class="help-text">本地部署的批量文书工作流ID</div>
+                    </div>
                 </div>
             </div>
 
@@ -688,6 +700,28 @@
                             <option value="coze-local">Coze 本地版</option>
                         </select>
                         <div class="help-text">选择使用在线版还是本地版的工作流</div>
+                    </div>
+                </div>
+
+                <!-- 批量文书工具 -->
+                <div class="tool-config">
+                    <div class="tool-header">
+                        <div class="tool-info">
+                            <h4>批量文书</h4>
+                            <p>批量生成法律文书</p>
+                        </div>
+                        <div class="model-status">
+                            当前工作流：<span id="batch-docs-status">未配置</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">选择工作流</label>
+                        <select class="form-select" id="batch-docs-workflow">
+                            <option value="">未配置</option>
+                            <option value="coze-online">Coze 在线版</option>
+                            <option value="coze-local">Coze 本地版</option>
+                        </select>
+                        <div class="help-text">此工具使用工作流接口，在线需配置 API Key，本地可选（视服务端）。</div>
                     </div>
                 </div>
             </div>
@@ -742,6 +776,7 @@
                     document.getElementById('coze-online-workflow-url').value = localStorage.getItem('coze_online_workflow_url') || 'https://api.coze.cn/v1/workflow/stream_run';
                     document.getElementById('coze-online-review-workflow-id').value = localStorage.getItem('coze_online_review_workflow_id') || '';
                     document.getElementById('coze-online-parse-workflow-id').value = localStorage.getItem('coze_online_parse_workflow_id') || '';
+                    document.getElementById('coze-online-batch-docs-workflow-id').value = localStorage.getItem('coze_online_batch_docs_workflow_id') || '';
                     
                     // 加载Coze本地版配置
                     document.getElementById('coze-local-base-url').value = localStorage.getItem('coze_local_base_url') || 'http://localhost:8080';
@@ -750,10 +785,12 @@
                     document.getElementById('coze-local-workflow-url').value = localStorage.getItem('coze_local_workflow_url') || 'http://localhost:8080/api/v1/workflow/stream_run';
                     document.getElementById('coze-local-review-workflow-id').value = localStorage.getItem('coze_local_review_workflow_id') || '';
                     document.getElementById('coze-local-parse-workflow-id').value = localStorage.getItem('coze_local_parse_workflow_id') || '';
+                    document.getElementById('coze-local-batch-docs-workflow-id').value = localStorage.getItem('coze_local_batch_docs_workflow_id') || '';
                     
                     // 加载工具配置
                     document.getElementById('contract-review-workflow').value = localStorage.getItem('contract_review_workflow') || '';
                     document.getElementById('contract-parse-workflow').value = localStorage.getItem('contract_parse_workflow') || '';
+                    document.getElementById('batch-docs-workflow').value = localStorage.getItem('batch_docs_workflow') || '';
                     
                     console.log('工作流设置加载完成');
                 } catch (error) {
@@ -839,6 +876,8 @@
                     if (cozeOnlineWorkflowUrl) localStorage.setItem('coze_online_workflow_url', cozeOnlineWorkflowUrl);
                     if (cozeOnlineReviewWorkflowId) localStorage.setItem('coze_online_review_workflow_id', cozeOnlineReviewWorkflowId);
                     if (cozeOnlineParseWorkflowId) localStorage.setItem('coze_online_parse_workflow_id', cozeOnlineParseWorkflowId);
+                    const cozeOnlineBatchDocsWorkflowId = document.getElementById('coze-online-batch-docs-workflow-id').value.trim();
+                    if (cozeOnlineBatchDocsWorkflowId) localStorage.setItem('coze_online_batch_docs_workflow_id', cozeOnlineBatchDocsWorkflowId);
                     
                     // 保存Coze本地版配置
                     const cozeLocalBaseUrl = document.getElementById('coze-local-base-url').value.trim();
@@ -854,13 +893,17 @@
                     if (cozeLocalWorkflowUrl) localStorage.setItem('coze_local_workflow_url', cozeLocalWorkflowUrl);
                     if (cozeLocalReviewWorkflowId) localStorage.setItem('coze_local_review_workflow_id', cozeLocalReviewWorkflowId);
                     if (cozeLocalParseWorkflowId) localStorage.setItem('coze_local_parse_workflow_id', cozeLocalParseWorkflowId);
+                    const cozeLocalBatchDocsWorkflowId = document.getElementById('coze-local-batch-docs-workflow-id').value.trim();
+                    if (cozeLocalBatchDocsWorkflowId) localStorage.setItem('coze_local_batch_docs_workflow_id', cozeLocalBatchDocsWorkflowId);
                     
                     // 保存工具配置
                     const contractReviewWorkflow = document.getElementById('contract-review-workflow').value;
                     const contractParseWorkflow = document.getElementById('contract-parse-workflow').value;
+                    const batchDocsWorkflow = document.getElementById('batch-docs-workflow').value;
                     
                     localStorage.setItem('contract_review_workflow', contractReviewWorkflow);
                     localStorage.setItem('contract_parse_workflow', contractParseWorkflow);
+                    localStorage.setItem('batch_docs_workflow', batchDocsWorkflow);
                     
                     // 同步设置到父窗口（如果存在）
                     this.syncSettingsToParent();
@@ -887,7 +930,8 @@
                                     uploadUrl: localStorage.getItem('coze_online_upload_url'),
                                     workflowUrl: localStorage.getItem('coze_online_workflow_url'),
                                     reviewWorkflowId: localStorage.getItem('coze_online_review_workflow_id'),
-                                    parseWorkflowId: localStorage.getItem('coze_online_parse_workflow_id')
+                                    parseWorkflowId: localStorage.getItem('coze_online_parse_workflow_id'),
+                                    batchDocsWorkflowId: localStorage.getItem('coze_online_batch_docs_workflow_id')
                                 },
                                 cozeLocal: {
                                     baseUrl: localStorage.getItem('coze_local_base_url'),
@@ -895,11 +939,13 @@
                                     uploadUrl: localStorage.getItem('coze_local_upload_url'),
                                     workflowUrl: localStorage.getItem('coze_local_workflow_url'),
                                     reviewWorkflowId: localStorage.getItem('coze_local_review_workflow_id'),
-                                    parseWorkflowId: localStorage.getItem('coze_local_parse_workflow_id')
+                                    parseWorkflowId: localStorage.getItem('coze_local_parse_workflow_id'),
+                                    batchDocsWorkflowId: localStorage.getItem('coze_local_batch_docs_workflow_id')
                                 },
                                 tools: {
                                     contractReview: localStorage.getItem('contract_review_workflow'),
-                                    contractParse: localStorage.getItem('contract_parse_workflow')
+                                    contractParse: localStorage.getItem('contract_parse_workflow'),
+                                    batchDocs: localStorage.getItem('batch_docs_workflow')
                                 }
                             }
                         };
@@ -932,6 +978,7 @@
                     // 更新工具状态
                     const contractReviewWorkflow = localStorage.getItem('contract_review_workflow');
                     const contractParseWorkflow = localStorage.getItem('contract_parse_workflow');
+                    const batchDocsWorkflow = localStorage.getItem('batch_docs_workflow');
                     
                     const contractReviewStatus = document.getElementById('contract-review-status');
                     const contractParseStatus = document.getElementById('contract-parse-status');
@@ -941,6 +988,10 @@
                     }
                     if (contractParseStatus) {
                         contractParseStatus.textContent = this.getWorkflowDisplayName(contractParseWorkflow);
+                    }
+                    const batchDocsStatus = document.getElementById('batch-docs-status');
+                    if (batchDocsStatus) {
+                        batchDocsStatus.textContent = this.getWorkflowDisplayName(batchDocsWorkflow);
                     }
                     
                 } catch (error) {

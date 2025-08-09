@@ -569,7 +569,7 @@
                 </div>
             </div>
             
-            <nav class="tool-nav">
+                <nav class="tool-nav">
                 <div class="tool-item" data-tool="ai-chat">
                     <div class="tool-icon">
                         <i class="fa-solid fa-comments"></i>
@@ -609,6 +609,17 @@
                     <div class="tool-info">
                         <div class="tool-name">合同解析</div>
                         <div class="tool-desc">智能解析合同内容</div>
+                    </div>
+                    <div class="tool-status available"></div>
+                </div>
+
+                <div class="tool-item" data-tool="batch-docs">
+                    <div class="tool-icon">
+                        <i class="fa-solid fa-file-circle-plus"></i>
+                    </div>
+                    <div class="tool-info">
+                        <div class="tool-name">批量文书</div>
+                        <div class="tool-desc">批量生成法律文书</div>
                     </div>
                     <div class="tool-status available"></div>
                 </div>
@@ -706,6 +717,13 @@
                         url: 'tools/llm-settings.html',
                         icon: 'fa-brain',
                         description: '配置AI模型和工具默认模型',
+                        status: 'available'
+                    },
+                    'batch-docs': {
+                        name: '批量文书',
+                        url: 'tools/batch-docs.html',
+                        icon: 'fa-file-circle-plus',
+                        description: '批量生成法律文书',
                         status: 'available'
                     }
                 };

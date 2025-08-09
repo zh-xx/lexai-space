@@ -49,6 +49,12 @@
       "default_model": "coze-workflow",
       "supported_models": ["coze-workflow", "coze-local-workflow"],
       "description": "智能解析合同内容"
+    },
+    "batch-docs": {
+      "name": "批量文书",
+      "default_model": "coze-workflow",
+      "supported_models": ["coze-workflow", "coze-local-workflow"],
+      "description": "批量生成法律文书（工作流）"
     }
   },
   "providers": {
