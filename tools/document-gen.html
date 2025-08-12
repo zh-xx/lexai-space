@@ -8,7 +8,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/turndown@7.1.3/dist/turndown.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.4.1/dist/html-docx.js"></script>
     <style>
         /* 隐藏浏览器默认进度条 */
         ::-webkit-scrollbar { display: none; }
@@ -41,6 +45,12 @@
             padding: 0;
             display: flex;
             flex-direction: column;
+        }
+        /* 处理动画期间，禁用 body 缩放以确保遮罩与内容居中 */
+        body.no-scale {
+            transform: none !important;
+            width: auto !important;
+            height: auto !important;
         }
 
         .main-container { 
@@ -207,6 +217,25 @@
             line-height: 1.7;
             color: var(--text-color);
         }
+        
+        /* 富文本编辑器区域样式 */
+        #editor-toolbar { margin-bottom: 10px; }
+        .ql-toolbar.ql-snow { border-radius: 8px; border-color: var(--border-color); background: #fff; }
+        .ql-container.ql-snow { border: 1px solid var(--border-color); border-radius: 8px; background: #fff; }
+        #editor { min-height: 600px; }
+        /* 收紧编辑器的段落与列表间距，避免视觉上“空白行过多”；并调大默认字体 */
+        .preview-content .ql-editor { line-height: 1.55; font-size: 16px; }
+        .preview-content .ql-editor p { margin: 0 0 4px; }
+        .preview-content .ql-editor h1,
+        .preview-content .ql-editor h2,
+        .preview-content .ql-editor h3 { margin: 12px 0 8px; }
+        .preview-content .ql-editor h1 { font-size: 1.8em; }
+        .preview-content .ql-editor h2 { font-size: 1.4em; }
+        .preview-content .ql-editor h3 { font-size: 1.2em; }
+        .preview-content .ql-editor ul,
+        .preview-content .ql-editor ol { margin: 4px 0 4px 20px; padding-left: 20px; }
+        .preview-content .ql-editor li { margin: 0; }
+        .preview-content .ql-editor blockquote { margin: 6px 0; }
         
         /* Markdown 渲染样式 */
         .preview-content h1 {
@@ -460,18 +489,61 @@
                         <i class="fa-solid fa-file-contract"></i>
                         AI生成结果
                     </div>
-                    <div class="preview-actions">
+                <div class="preview-actions">
                         <button id="copy-result-btn" title="复制内容">
                             <i class="fa-solid fa-copy"></i>
-                            复制
+                            复制Markdown
                         </button>
                         <button id="download-result-btn" title="下载为 .md">
                             <i class="fa-solid fa-download"></i>
-                            下载
+                            下载 .md
+                        </button>
+                        <button id="download-docx-btn" title="下载为 Word 文档">
+                            <i class="fa-solid fa-file-word"></i>
+                            下载 Word
                         </button>
                     </div>
                 </div>
-                <div class="preview-content" id="generation-result-content"></div>
+                <div class="preview-content">
+                    <div id="editor-toolbar">
+                        <span class="ql-formats">
+                            <select class="ql-header">
+                                <option selected></option>
+                                <option value="1"></option>
+                                <option value="2"></option>
+                                <option value="3"></option>
+                            </select>
+                        </span>
+                        <span class="ql-formats">
+                            <select class="ql-size">
+                                <option value="small"></option>
+                                <option selected></option>
+                                <option value="large"></option>
+                                <option value="huge"></option>
+                            </select>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-bold"></button>
+                            <button class="ql-italic"></button>
+                            <button class="ql-underline"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-list" value="ordered"></button>
+                            <button class="ql-list" value="bullet"></button>
+                            <button class="ql-indent" value="-1"></button>
+                            <button class="ql-indent" value="+1"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <select class="ql-align"></select>
+                            <button class="ql-blockquote"></button>
+                            <button class="ql-link"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-clean"></button>
+                        </span>
+                    </div>
+                    <div id="editor"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -545,7 +617,6 @@
         const contractForm = document.getElementById('contract-form');
         const generateBtn = document.getElementById('generate-btn');
         const resultContainer = document.getElementById('generation-result-container');
-        const resultContent = document.getElementById('generation-result-content');
         const processingView = document.getElementById('processing-view');
         const optimizationModal = document.getElementById('optimization-modal');
         const originalContent = document.getElementById('original-content');
@@ -553,6 +624,55 @@
         const applyOptimizationBtn = document.getElementById('apply-optimization');
         const rejectOptimizationBtn = document.getElementById('reject-optimization');
         const closeOptimizationModalBtn = document.getElementById('close-optimization-modal');
+        const downloadDocxBtn = document.getElementById('download-docx-btn');
+
+        // 初始化 Quill 和 Turndown
+        let quill;
+        const turndownService = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' });
+        quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: { container: '#editor-toolbar' }
+            }
+        });
+
+        // 确保 html-docx-js 可用的加载器
+        function ensureHtmlDocxLoaded() {
+            return new Promise((resolve, reject) => {
+                if (window.htmlDocx && typeof window.htmlDocx.asBlob === 'function') {
+                    resolve();
+                    return;
+                }
+                const candidates = [
+                    'https://cdn.jsdelivr.net/npm/html-docx-js@0.4.1/dist/html-docx.js',
+                    'https://cdnjs.cloudflare.com/ajax/libs/html-docx-js/0.4.1/html-docx.js',
+                    'https://unpkg.com/html-docx-js/dist/html-docx.js'
+                ];
+                let loaded = false;
+                let index = 0;
+                function tryLoadNext() {
+                    if (index >= candidates.length) {
+                        reject(new Error('html-docx-js 加载失败'));
+                        return;
+                    }
+                    const src = candidates[index++];
+                    const s = document.createElement('script');
+                    s.src = src;
+                    s.async = true;
+                    s.onload = () => {
+                        if (window.htmlDocx && typeof window.htmlDocx.asBlob === 'function') {
+                            loaded = true;
+                            resolve();
+                        } else {
+                            tryLoadNext();
+                        }
+                    };
+                    s.onerror = tryLoadNext;
+                    document.head.appendChild(s);
+                }
+                tryLoadNext();
+            });
+        }
         
                 // --- Functions ---
         function handleCustomInput(selectId, inputId) {
@@ -713,6 +833,7 @@
 
             processingView.classList.add('show');
             document.body.style.overflow = 'hidden'; // 禁用页面滚动
+            document.body.classList.add('no-scale');
             document.getElementById('processing-status').textContent = "正在构建AI指令...";
             
             // 激活第一个步骤
@@ -867,7 +988,7 @@
                     **# 附件**
                     如有必要可以附件方式呈现
 
-                    **最终指令：请返回Markdown格式的完整合同，使用标准的Markdown语法，包括标题、列表、强调等格式。**
+                    **最终指令：请返回Markdown格式的完整合同，使用标准的Markdown语法，包括标题、列表、强调等格式。仅输出合同正文内容，不要输出除合同以外的任何说明、前后缀、致谢、提示语、调试信息或代码块标记。**
                 `;
 
                 document.getElementById('processing-status').textContent = "AI正在撰写合同，请稍候...";
@@ -882,17 +1003,27 @@
                 updateStep('complete');
 
                 setTimeout(() => {
-                    // 渲染Markdown内容
-                    resultContent.innerHTML = marked.parse(generatedText);
+                    // 将Markdown渲染为HTML并注入编辑器
+                    // 先将 Markdown 渲染为 HTML，再做一次轻量清洗：
+                    // - 去除多余的空段落
+                    // - 将多重换行规整为单一段落间距
+                    let html = marked.parse(generatedText);
+                    // 将孤立的 <p><br></p> 或空段落压缩
+                    html = html.replace(/<p>\s*(<br\s*\/?>)?\s*<\/p>/gi, '');
+                    // 将连续多个 <br> 压缩为一个
+                    html = html.replace(/(<br\s*\/?>\s*){2,}/gi, '<br/>');
+                    quill.root.innerHTML = html;
                     resultContainer.classList.add('show');
                     processingView.classList.remove('show');
                     document.body.style.overflow = ''; // 恢复页面滚动
+                    document.body.classList.remove('no-scale');
                 }, 1000);
 
             } catch (error) {
                 alert(`生成失败: ${error.message}`);
                 processingView.classList.remove('show');
                 document.body.style.overflow = ''; // 恢复页面滚动
+                document.body.classList.remove('no-scale');
             }
         }
 
@@ -900,9 +1031,10 @@
         contractForm.addEventListener('submit', handleFormSubmit);
 
         document.getElementById('copy-result-btn').addEventListener('click', () => {
-            // 获取原始Markdown文本（从API响应中保存）
-            const originalText = window.generatedContractText || resultContent.textContent;
-            navigator.clipboard.writeText(originalText).then(() => {
+            // 从编辑器HTML转换为Markdown后复制
+            const html = quill ? quill.root.innerHTML : '';
+            const md = turndownService.turndown(html);
+            navigator.clipboard.writeText(md).then(() => {
                 // 显示成功提示
                 const btn = document.getElementById('copy-result-btn');
                 const originalText = btn.innerHTML;
@@ -921,12 +1053,41 @@
         });
 
         document.getElementById('download-result-btn').addEventListener('click', () => {
-            const originalText = window.generatedContractText || resultContent.textContent;
-            const blob = new Blob([originalText], { type: 'text/markdown;charset=utf-8' });
+            // 从编辑器HTML转换为Markdown后下载
+            const html = quill ? quill.root.innerHTML : '';
+            const md = turndownService.turndown(html);
+            const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
             a.download = `${document.getElementById('contract-type').value || '合同'}.md`;
             a.click();
+        });
+
+        // 下载为 Word 文档
+        downloadDocxBtn.addEventListener('click', async () => {
+            try {
+                await ensureHtmlDocxLoaded();
+                const htmlBody = quill ? quill.root.innerHTML : '';
+                // 包装成完整HTML，附加基础样式，提升Word排版稳定性
+                const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+                    @page { margin: 2cm; }
+                    body { font-family: 'Inter', 'Noto Sans SC', sans-serif; line-height: 1.6; font-size: 12pt; }
+                    h1 { font-size: 22pt; margin: 12pt 0 8pt; }
+                    h2 { font-size: 16pt; margin: 10pt 0 6pt; }
+                    h3 { font-size: 14pt; margin: 8pt 0 6pt; }
+                    p { margin: 6pt 0; }
+                    ul, ol { margin: 6pt 0 6pt 18pt; }
+                    blockquote { border-left: 3px solid #999; padding-left: 8pt; color: #555; margin: 6pt 0; }
+                </style></head><body>${htmlBody}</body></html>`;
+                const blob = window.htmlDocx.asBlob(fullHtml);
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `${document.getElementById('contract-type').value || '合同'}.docx`;
+                a.click();
+            } catch (err) {
+                console.error('Word 导出失败:', err);
+                alert('下载 Word 失败：' + (err && err.message ? err.message : '未知错误'));
+            }
         });
 
         // --- AI API Functions ---
