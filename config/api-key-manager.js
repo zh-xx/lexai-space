@@ -23,7 +23,8 @@ class ApiKeyManager {
             deepseek: localStorage.getItem('deepseek_api_key') || '',
             kimi: localStorage.getItem('kimi_api_key') || '', // 新增Kimi API密钥
             qwen: localStorage.getItem('qwen_api_key') || '', // 新增Qwen API密钥
-            openrouter: localStorage.getItem('openrouter_api_key') || '' // 新增OpenRouter API密钥
+            openrouter: localStorage.getItem('openrouter_api_key') || '', // 新增OpenRouter API密钥
+            qianfan: localStorage.getItem('qianfan_api_key') || '' // 新增Qianfan API密钥
         };
     }
 
@@ -94,7 +95,7 @@ class ApiKeyManager {
         const status = {};
         
         // 检查提供商配置（包含本地提供商）
-        ['google', 'coze', 'deepseek', 'coze-local', 'kimi', 'qwen', 'openrouter', 'ollama'].forEach(provider => {
+        ['google', 'coze', 'deepseek', 'coze-local', 'kimi', 'qwen', 'openrouter', 'ollama', 'qianfan'].forEach(provider => {
             status[provider] = {
                 configured: this.isApiKeyConfigured(provider),
                 hasKey: !!this.getApiKey(provider),
@@ -122,6 +123,8 @@ class ApiKeyManager {
                 return this.validateQwenApiKey(apiKey);
             case 'openrouter':
                 return this.validateOpenRouterApiKey(apiKey);
+            case 'qianfan':
+                return this.validateQianfanApiKey(apiKey);
             default:
                 return { valid: true, message: '格式正确' };
         }
@@ -171,6 +174,14 @@ class ApiKeyManager {
     validateOpenRouterApiKey(apiKey) {
         if (apiKey.length < 10) {
             return { valid: false, message: 'OpenRouter API密钥格式不正确' };
+        }
+        return { valid: true, message: '格式正确' };
+    }
+
+    // 验证Qianfan API密钥
+    validateQianfanApiKey(apiKey) {
+        if (!apiKey || apiKey.length < 10) {
+            return { valid: false, message: 'Qianfan API密钥格式不正确' };
         }
         return { valid: true, message: '格式正确' };
     }

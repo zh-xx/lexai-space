@@ -709,6 +709,8 @@
                         return localStorage.getItem('qwen_api_key') || '';
                     case 'kimi':
                         return localStorage.getItem('kimi_api_key') || '';
+                    case 'ernie':
+                        return localStorage.getItem('qianfan_api_key') || '';
                     case 'openrouter':
                         return localStorage.getItem('openrouter_api_key') || '';
                     case 'chatglm':
@@ -1113,6 +1115,8 @@
                             return await callKimiAPI(messages, verifiedModel.modelName, verifiedModel.apiKey);
                         case 'qwen':
                             return await callQwenAPI(messages, verifiedModel.modelName, verifiedModel.apiKey);
+                        case 'qianfan':
+                            return await callQianfanAPI(messages, verifiedModel.modelName, verifiedModel.apiKey);
                         case 'openrouter':
                             return await callOpenRouterAPI(messages, verifiedModel.modelName, verifiedModel.apiKey);
                         case 'ollama':
@@ -1150,6 +1154,8 @@
                         return await callQwenAPI(messages, selectedModel, apiKey);
                     case 'kimi':
                         return await callKimiAPI(messages, selectedModel, apiKey);
+                    case 'qianfan':
+                        return await callQianfanAPI(messages, selectedModel, apiKey);
                     case 'chatglm':
                         return await callChatGLMAPI(messages, selectedModel, apiKey);
                     case 'ollama':
@@ -1431,6 +1437,32 @@
                 throw new Error(errorData.error?.message || 'OpenRouter API请求失败');
             }
 
+            const data = await response.json();
+            return data.choices[0].message.content;
+        }
+
+        async function callQianfanAPI(messages, model, apiKey) {
+            const url = 'https://qianfan.baidubce.com/v2/chat/completions';
+            const qfMessages = messages.map(msg => ({
+                role: msg.role === 'user' ? 'user' : 'assistant',
+                content: msg.parts[0].text
+            }));
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: model || 'ernie-4.5-turbo-128k',
+                    messages: qfMessages,
+                    max_tokens: 4000
+                })
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || 'Qianfan API请求失败');
+            }
             const data = await response.json();
             return data.choices[0].message.content;
         }

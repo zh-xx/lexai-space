@@ -37,7 +37,8 @@ class ModelManager {
             deepseek: localStorage.getItem('deepseek_api_key') || '',
             kimi: localStorage.getItem('kimi_api_key') || '', // 新增Kimi API密钥
             qwen: localStorage.getItem('qwen_api_key') || '', // 新增Qwen API密钥
-            openrouter: localStorage.getItem('openrouter_api_key') || '' // 新增OpenRouter API密钥
+            openrouter: localStorage.getItem('openrouter_api_key') || '', // 新增OpenRouter API密钥
+            qianfan: localStorage.getItem('qianfan_api_key') || '' // 新增Qianfan API密钥
         };
     }
 
@@ -143,6 +144,8 @@ class ModelManager {
                 return await this.callOpenRouterAPI(modelId, messages, options);
             case 'ollama':
                 return await this.callOllamaAPI(modelId, messages, options);
+            case 'qianfan':
+                return await this.callQianfanAPI(modelId, messages, options);
             default:
                 throw new Error(`不支持的提供商: ${provider}`);
         }
@@ -339,6 +342,41 @@ class ModelManager {
 
         const data = await response.json();
         return data.choices[0].message.content;
+    }
+
+    async callQianfanAPI(modelId, messages, options) {
+        const apiKey = this.getApiKey('qianfan');
+        // 千帆 OpenAI 兼容端点
+        const url = 'https://qianfan.baidubce.com/v2/chat/completions';
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: modelId || 'ernie-4.5-turbo-128k',
+                messages: messages.map(msg => ({
+                    role: msg.role,
+                    content: msg.content
+                })),
+                stream: options.stream || false,
+                max_tokens: options.max_tokens || 4096
+            })
+        });
+
+        if (!response.ok) {
+            let message = 'Qianfan API调用失败';
+            try {
+                const errorData = await response.json();
+                message = errorData.error?.message || message;
+            } catch (_) {}
+            throw new Error(message);
+        }
+
+        const data = await response.json();
+        return data.choices?.[0]?.message?.content || '';
     }
 
     async callOpenRouterAPI(modelId, messages, options) {
