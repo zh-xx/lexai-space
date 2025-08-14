@@ -443,6 +443,10 @@
             background: #2d3748;
         }
 
+        .model-tag.qianfan {
+            background: #2b6cb0;
+        }
+
         /* 删除按钮样式 */
         .model-tag .delete-btn {
             background: rgba(255, 255, 255, 0.2);
@@ -582,6 +586,35 @@
                             <i class="fa-solid fa-vial"></i> 验证 API
                         </button>
                         <span class="validation-status" id="gemini-validation-status"></span>
+                    </div>
+                </div>
+
+                <!-- Baidu Qianfan API -->
+                <div class="config-card">
+                    <div class="config-header">
+                        <div class="config-info">
+                            <h4>Baidu Qianfan API</h4>
+                            <p>兼容 OpenAI 协议，推荐模型 ernie-4.5-turbo-128k</p>
+                        </div>
+                        <div class="status-indicator" id="qianfan-status"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">API 密钥</label>
+                        <input type="password" class="form-input" id="qianfan-api-key" placeholder="请输入您的 Qianfan API 密钥">
+                        <div class="help-text">
+                            <a href="https://console.bce.baidu.com/qianfan/ais/console/applicationConsole/application" target="_blank">获取 Qianfan API 密钥</a>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">模型名称</label>
+                        <input type="text" class="form-input" id="qianfan-model-name" placeholder="例如：ernie-4.5-turbo-128k">
+                        <div class="help-text">输入您要使用的模型名称</div>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-secondary" id="test-qianfan-btn">
+                            <i class="fa-solid fa-vial"></i> 验证 API
+                        </button>
+                        <span class="validation-status" id="qianfan-validation-status"></span>
                     </div>
                 </div>
 
@@ -796,6 +829,7 @@
                     document.getElementById('kimi-api-key').value = localStorage.getItem('kimi_api_key') || '';
                     document.getElementById('qwen-api-key').value = localStorage.getItem('qwen_api_key') || '';
                     document.getElementById('openrouter-api-key').value = localStorage.getItem('openrouter_api_key') || '';
+                    document.getElementById('qianfan-api-key').value = localStorage.getItem('qianfan_api_key') || '';
                     
                     // 加载模型名称
                     document.getElementById('deepseek-model-name').value = localStorage.getItem('deepseek_model_name') || '';
@@ -803,6 +837,7 @@
                     document.getElementById('kimi-model-name').value = localStorage.getItem('kimi_model_name') || '';
                     document.getElementById('qwen-model-name').value = localStorage.getItem('qwen_model_name') || '';
                     document.getElementById('openrouter-model-name').value = localStorage.getItem('openrouter_model_name') || '';
+                    document.getElementById('qianfan-model-name').value = localStorage.getItem('qianfan_model_name') || 'ernie-4.5-turbo-128k';
 
                     // 加载本地服务配置（Ollama）
                     document.getElementById('ollama-url').value = localStorage.getItem('ollama_url') || 'http://localhost:11434';
@@ -870,12 +905,20 @@
                         console.log('Qwen验证按钮事件绑定成功');
                     }
 
+                    // Qianfan验证按钮
+                    const testQianfanBtn = document.getElementById('test-qianfan-btn');
+                    if (testQianfanBtn) {
+                        testQianfanBtn.addEventListener('click', () => this.testQianfanApi());
+                        console.log('Qianfan验证按钮事件绑定成功');
+                    }
+
                     // OpenRouter验证按钮
                     const testOpenRouterBtn = document.getElementById('test-openrouter-btn');
                     if (testOpenRouterBtn) {
                         testOpenRouterBtn.addEventListener('click', () => this.testOpenRouterApi());
                         console.log('OpenRouter验证按钮事件绑定成功');
                     }
+
 
                     // Ollama验证按钮
                     const testOllamaBtn = document.getElementById('test-ollama-btn');
@@ -921,12 +964,14 @@
                     const kimiApiKey = document.getElementById('kimi-api-key').value.trim();
                     const qwenApiKey = document.getElementById('qwen-api-key').value.trim();
                     const openrouterApiKey = document.getElementById('openrouter-api-key').value.trim();
+                    const qianfanApiKey = document.getElementById('qianfan-api-key').value.trim();
                     
                     if (deepseekApiKey) localStorage.setItem('deepseek_api_key', deepseekApiKey);
                     if (geminiApiKey) localStorage.setItem('google_api_key', geminiApiKey);
                     if (kimiApiKey) localStorage.setItem('kimi_api_key', kimiApiKey);
                     if (qwenApiKey) localStorage.setItem('qwen_api_key', qwenApiKey);
                     if (openrouterApiKey) localStorage.setItem('openrouter_api_key', openrouterApiKey);
+                    if (qianfanApiKey) localStorage.setItem('qianfan_api_key', qianfanApiKey);
                     
                     // 保存模型名称
                     const deepseekModelName = document.getElementById('deepseek-model-name').value.trim();
@@ -934,6 +979,7 @@
                     const kimiModelName = document.getElementById('kimi-model-name').value.trim();
                     const qwenModelName = document.getElementById('qwen-model-name').value.trim();
                     const openrouterModelName = document.getElementById('openrouter-model-name').value.trim();
+                    const qianfanModelName = document.getElementById('qianfan-model-name').value.trim();
                     const ollamaUrl = document.getElementById('ollama-url').value.trim();
                     const ollamaModelName = document.getElementById('ollama-model-name').value.trim();
 
@@ -942,6 +988,7 @@
                     if (kimiModelName) localStorage.setItem('kimi_model_name', kimiModelName);
                     if (qwenModelName) localStorage.setItem('qwen_model_name', qwenModelName);
                     if (openrouterModelName) localStorage.setItem('openrouter_model_name', openrouterModelName);
+                    if (qianfanModelName) localStorage.setItem('qianfan_model_name', qianfanModelName);
                     if (ollamaUrl) localStorage.setItem('ollama_url', ollamaUrl);
                     if (ollamaModelName) localStorage.setItem('ollama_model_name', ollamaModelName);
                     
@@ -977,14 +1024,16 @@
                                     gemini: localStorage.getItem('google_api_key'),
                                     kimi: localStorage.getItem('kimi_api_key'),
                                     qwen: localStorage.getItem('qwen_api_key'),
-                                    openrouter: localStorage.getItem('openrouter_api_key')
+                                    openrouter: localStorage.getItem('openrouter_api_key'),
+                                    qianfan: localStorage.getItem('qianfan_api_key')
                                 },
                                 modelNames: {
                                     deepseek: localStorage.getItem('deepseek_model_name'),
                                     gemini: localStorage.getItem('gemini_model_name'),
                                     kimi: localStorage.getItem('kimi_model_name'),
                                     qwen: localStorage.getItem('qwen_model_name'),
-                                    openrouter: localStorage.getItem('openrouter_model_name')
+                                    openrouter: localStorage.getItem('openrouter_model_name'),
+                                    qianfan: localStorage.getItem('qianfan_model_name')
                                 },
                                 verifiedModels: JSON.parse(localStorage.getItem('verified_models') || '[]'),
                                 toolModels: {
@@ -1010,6 +1059,7 @@
                     const geminiApiKey = localStorage.getItem('google_api_key');
                     const kimiApiKey = localStorage.getItem('kimi_api_key');
                     const qwenApiKey = localStorage.getItem('qwen_api_key');
+                    const qianfanApiKey2 = localStorage.getItem('qianfan_api_key');
                     
                     // DeepSeek状态
                     const deepseekStatus = document.getElementById('deepseek-status');
@@ -1040,6 +1090,11 @@
                     if (openRouterStatus) {
                         const openRouterApiKey = localStorage.getItem('openrouter_api_key');
                         openRouterStatus.className = `status-indicator ${openRouterApiKey ? 'connected' : ''}`;
+                    }
+                    // Qianfan状态
+                    const qianfanStatus = document.getElementById('qianfan-status');
+                    if (qianfanStatus) {
+                        qianfanStatus.className = `status-indicator ${qianfanApiKey2 ? 'connected' : ''}`;
                     }
                     
                     // 更新工具模型状态
@@ -1342,6 +1397,55 @@
                 }
             }
 
+            // 测试Qianfan API
+            async testQianfanApi() {
+                const apiKey = document.getElementById('qianfan-api-key').value.trim();
+                const modelName = (document.getElementById('qianfan-model-name').value.trim() || 'ernie-4.5-turbo-128k');
+                const statusElement = document.getElementById('qianfan-validation-status');
+                const testBtn = document.getElementById('test-qianfan-btn');
+
+                if (!apiKey || !modelName) {
+                    statusElement.textContent = '请先输入API密钥和模型名称';
+                    statusElement.className = 'validation-status warning';
+                    return;
+                }
+
+                testBtn.disabled = true;
+                testBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 验证中...';
+                statusElement.textContent = '正在验证...';
+                statusElement.className = 'validation-status warning';
+
+                try {
+                    const response = await fetch('https://qianfan.baidubce.com/v2/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: modelName,
+                            messages: [{ role: 'user', content: 'Hello, Qianfan!' }],
+                            max_tokens: 100
+                        })
+                    });
+
+                    if (response.ok) {
+                        statusElement.textContent = '验证成功！';
+                        statusElement.className = 'validation-status success';
+                        this.addVerifiedModel('qianfan', modelName, apiKey);
+                    } else {
+                        statusElement.textContent = `验证失败: ${response.status} ${response.statusText}`;
+                        statusElement.className = 'validation-status error';
+                    }
+                } catch (error) {
+                    statusElement.textContent = `验证失败: ${error.message}`;
+                    statusElement.className = 'validation-status error';
+                } finally {
+                    testBtn.disabled = false;
+                    testBtn.innerHTML = '<i class="fa-solid fa-vial"></i> 验证 API';
+                }
+            }
+
             // 添加已验证模型
             addVerifiedModel(provider, modelName, apiKey) {
                 const verifiedModels = JSON.parse(localStorage.getItem('verified_models') || '[]');
@@ -1402,6 +1506,9 @@
                     } else if (model.provider === 'ollama') {
                         providerIcon = 'fa-solid fa-server';
                         providerClass = 'ollama';
+                    } else if (model.provider === 'qianfan') {
+                        providerIcon = 'fa-solid fa-cloud';
+                        providerClass = 'qianfan';
                     } else {
                         providerIcon = 'fa-solid fa-cube';
                         providerClass = 'default';
@@ -1615,6 +1722,35 @@
                         }
                     } else {
                         results.push({ type: 'warning', message: 'OpenRouter API: API密钥或模型名称未配置' });
+                    }
+
+                    // 测试Qianfan API
+                    const qianfanApiKey = localStorage.getItem('qianfan_api_key');
+                    const qianfanModelName = document.getElementById('qianfan-model-name').value.trim() || 'ernie-4.5-turbo-128k';
+                    if (qianfanApiKey && qianfanModelName) {
+                        try {
+                            const response = await fetch('https://qianfan.baidubce.com/v2/chat/completions', {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${qianfanApiKey}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    model: qianfanModelName,
+                                    messages: [{ role: 'user', content: 'Hello, Qianfan!' }],
+                                    max_tokens: 100
+                                })
+                            });
+                            if (response.ok) {
+                                results.push({ type: 'success', message: `Qianfan API: 验证成功 (${qianfanModelName})` });
+                            } else {
+                                results.push({ type: 'error', message: `Qianfan API: 验证失败 (${qianfanModelName}, ${response.status} ${response.statusText})` });
+                            }
+                        } catch (e) {
+                            results.push({ type: 'error', message: `Qianfan API: 连接失败 (${qianfanModelName})` });
+                        }
+                    } else {
+                        results.push({ type: 'warning', message: 'Qianfan API: API密钥或模型名称未配置' });
                     }
 
                     // 测试Ollama（本地）
