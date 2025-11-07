@@ -145,6 +145,8 @@ npx http-server -p 8000
 开发环境：现代浏览器、本地静态服务器、ES6+。
 代码规范：语义化 HTML、模块化 JS、样式尽量保持一致性。
 
+附：[工作流下载](https://www.yuque.com/zhilvjicheng/ainote/ke1g25k3eu3gdvvi?singleDoc#%20%E3%80%8A%F0%9F%92%BC%E5%B7%A5%E4%BD%9C%E6%B5%81%E4%B8%8B%E8%BD%BD%E3%80%8B)
+
 ## 📄 许可证
 
 本项目采用 MIT 许可证。
